@@ -1,4 +1,6 @@
 {
+	"mcdr_dialog.main_screen.title": "MCDReforged Dialog UI",
+	"mcdr_dialog.main_screen.external_title": "Open MCDR Dialog UI",
 	"mcdr_dialog.title.test_text_input": "Test Text Input",
 	"mcdr_dialog.inputs.input_text": "Please input text",
 	"mcdr_dialog.tips.input_text": "Please input the text here you want to send.",
