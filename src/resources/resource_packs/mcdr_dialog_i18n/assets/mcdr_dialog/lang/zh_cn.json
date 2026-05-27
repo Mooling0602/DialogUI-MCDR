@@ -1,0 +1,6 @@
+{
+	"mcdr_dialog.title.test_text_input": "测试文本输入",
+	"mcdr_dialog.inputs.input_text": "请输入文本",
+	"mcdr_dialog.tips.input_text": "请输入你想发送的文本。",
+	"mcdr_dialog.actions.send_text_button": "发送"
+}

@@ -1,0 +1,41 @@
+{
+  "type": "minecraft:multi_action",
+  "title": {
+    "translate": "mcdr_dialog.title.test_text_input",
+    "fallback": "Test Text Input"
+  },
+  "inputs": [
+    {
+      "type": "minecraft:text",
+      "key": "text_input",
+      "label": {
+        "translate": "mcdr_dialog.inputs.input_text",
+        "fallback": "Please input text",
+        "hover_event": {
+          "action": "show_text",
+          "value": {
+            "translate": "mcdr_dialog.tips.input_text",
+            "fallback": "Please input the text here you want to send."
+          }
+        }
+      },
+      "label_visible": true
+    }
+  ],
+  "can_close_with_escape": true,
+  "after_action": "close",
+  "pause": false,
+  "actions": [
+    {
+      "label": {
+        "translate": "mcdr_dialog.actions.send_text_button",
+        "fallback": "Send",
+        "type": "translatable"
+      },
+      "action": {
+        "type": "minecraft:dynamic/run_command",
+        "template": "say $(text_input)"
+      }
+    }
+  ]
+}

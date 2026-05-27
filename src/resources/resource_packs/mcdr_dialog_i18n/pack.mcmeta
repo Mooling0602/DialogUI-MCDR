@@ -1,0 +1,9 @@
+{
+  "pack": {
+    "description": "Translation pack for MCDReforged plugin dialog.",
+	  "pack_format": 9999,
+    "supported_formats": [0, 9999],
+	  "min_format": 0,
+    "max_format": 9999
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "description": "MCDReforged plugin dialog.",
+    "min_format": [88, 0],
+    "max_format": [101, 1]
+  }
+}
