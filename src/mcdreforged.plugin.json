@@ -1,0 +1,17 @@
+{
+    "id": "plugin_id",
+    "version": "0.0.1",
+    "name": "Plugin",
+    "description": {
+        "en_us": "Description of this plugin.",
+        "zh_cn": "此插件的介绍。"
+    },
+    "author": "Unknown",
+    "link": "https://github.com",
+    "dependencies": {
+        "mcdreforged": ">=2.14.1"
+    },
+    "resources": [
+        "lang"
+    ]
+}

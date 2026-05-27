@@ -1,0 +1,10 @@
+[meta]
+name = "uv-template-for-mcdr-plugin"
+author = [{ "github" = "Mooling0602" }]
+maintainers = []
+description = "MCDR plugin template repository with useful tools."
+main-branch = "main"
+license = "GPL-3.0"
+
+[platform]
+remote-hoster = [{ "github" = "https://github.com" }]
