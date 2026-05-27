@@ -1,16 +1,16 @@
 {
-    "type": "minecraft:dialog_list",
-    "title": {
-        "translate": "mcdr_dialog.main_screen.title",
-        "fallback": "MCDReforged Dialog UI"
-    },
-    "external_title": {
-        "translate": "mcdr_dialog.main_screen.external_title",
-        "fallback": "Open MCDR Dialog UI"
-    },
-    "can_close_with_escape": true,
-    "pause": false,
-    "dialogs": [
-        "mcdr_dialog:test_text_input"
-    ]
+  "type": "minecraft:dialog_list",
+  "title": {
+    "translate": "mcdr_dialog.main_screen.title",
+    "fallback": "MCDReforged Dialog UI"
+  },
+  "external_title": {
+    "translate": "mcdr_dialog.main_screen.external_title",
+    "fallback": "Open MCDR Dialog UI"
+  },
+  "can_close_with_escape": true,
+  "pause": false,
+  "dialogs": [
+    "mcdr_dialog:test_text_input"
+  ]
 }
