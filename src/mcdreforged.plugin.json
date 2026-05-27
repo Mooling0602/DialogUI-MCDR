@@ -1,17 +1,18 @@
 {
-    "id": "plugin_id",
+    "id": "dialog_ui",
     "version": "0.0.1",
-    "name": "Plugin",
+    "name": "DialogUI",
     "description": {
-        "en_us": "Description of this plugin.",
-        "zh_cn": "此插件的介绍。"
+        "en_us": "Provides dialog UI for MCDR and its plugins.",
+        "zh_cn": "为MCDR及其插件提供对话框UI。"
     },
-    "author": "Unknown",
-    "link": "https://github.com",
+    "author": "Mooling0602",
+    "link": "https://github.com/Mooling0602/DialogUI-MCDR",
     "dependencies": {
         "mcdreforged": ">=2.14.1"
     },
     "resources": [
-        "lang"
+        "lang",
+        "resources"
     ]
 }
