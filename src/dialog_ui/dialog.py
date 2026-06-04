@@ -1,7 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto
+from typing import Any, Self
 
-from mcdreforged.api.all import RText
+from mcdreforged.api.all import RTextBase
 
 
 class DialogType(Enum):
@@ -11,9 +12,7 @@ class DialogType(Enum):
     @staticmethod
     def _generate_next_value_(name: str, start: int, count: int, last_values: list):
         """This method add a string "minecraft:" as namespace prefix to each types."""
-        _start = start
-        _count = count
-        _last_values = last_values
+        _, _, _ = start, count, last_values
         return f"minecraft:{name.lower()}"
 
     CONFIRMATION = auto()
@@ -57,31 +56,97 @@ class DialogAfterActionOperation(Enum):
 @dataclass
 class DialogBase:
     """An base class of Minecraft dialog component.
+
+    .. warning::
+       Do not use `dataclass.asdict()` to convert this class to a dict, as it will not convert the correct data structure for the dialog component.
+       Instead, use the `to_dict()` method provided in this class.
+
     `Ref: <https://minecraft.wiki/w/Dialog#Dialog_format>`__"""
 
-    title: RText
+    type: DialogType
+    """One dialog types from the `minecraft:dialog_type` registry.
+    """
+
+    title: RTextBase
     """The title text component of the dialog.
-    `Ref: <https://minecraft.wiki/w/Dialog#Dialog_format>`__"""
-
-    external_title: RText | None = None
-    """Name to be used for a button leading to this dialog (e.g. on the pause menu or in a parent ``dialog_list``), optional text component.
-    If not present, ``title`` is used instead.
-    `Ref: <https://minecraft.wiki/w/Dialog#dialog_list>`__"""
-
-    pause: bool = True
-    """If the dialog screen should pause the game in single-player mode. Defaults to ``true``.
-    `Ref: <https://minecraft.wiki/w/Dialog#Dialog_format>`__"""
-
-    after_action: DialogAfterActionOperation = DialogAfterActionOperation.CLOSE
-    """An additional operation performed on the dialog after click or submit actions. Defaults to ``close``.
-    `Ref: <https://minecraft.wiki/w/Dialog#Dialog_format>`__"""
+    """
 
     can_close_with_escape: bool = True
     """Can dialog be dismissed with Escape key. Defaults to ``true``.
-    `Ref: <https://minecraft.wiki/w/Dialog#Dialog_format>`__"""
+    """
+
+    pause: bool = True
+    """If the dialog screen should pause the game in single-player mode. Defaults to ``true``.
+    """
+
+    after_action: DialogAfterActionOperation = DialogAfterActionOperation.CLOSE
+    """An additional operation performed on the dialog after click or submit actions. Defaults to ``close``.
+    """
+
+    external_title: RTextBase | None = None
+    """Name to be used for a button leading to this dialog (e.g. on the pause menu or in a parent ``dialog_list``), optional text component.
+    If not present, ``title`` is used instead.
+    """
+
+    body: list | None = None  # need impl class
+    """Optional list of body elements or a single body element.
+    `Ref: <https://minecraft.wiki/w/Dialog#Body_format>`__"""
+
+    inputs: list | None = None  # need impl class
+    """Optional list of input controls.
+    `Ref: <https://minecraft.wiki/w/Dialog#Input_control_format>`__"""
+
+    def to_dict(self) -> dict:
+        """Convert the dataclass to a dict with correct data structure for the dialog component."""
+        return {
+            "type": self.type.value,
+            "title": self.title.to_json_object(),
+            "external_title": self.external_title.to_json_object()
+            if self.external_title is not None
+            else None,
+            "body": [element.to_dict() for element in self.body] if self.body else None,
+            "inputs": [input_control.to_dict() for input_control in self.inputs]
+            if self.inputs
+            else None,
+            "can_close_with_escape": self.can_close_with_escape,
+            "pause": self.pause,
+            "after_action": self.after_action.value,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        type = DialogType(data["type"])
+        after_action_option = data.get("after_action", "close")
+        after_action = DialogAfterActionOperation(after_action_option)
+        title = RTextBase.from_json_object(data["title"])
+        external_title = None
+        if data.get("external_title", None):
+            external_title = RTextBase.from_json_object(data["external_title"])
+        body = None
+        if data.get("body", None):
+            body = data["body"]  # need impl body element class and methods.
+        inputs = None
+        if data.get("inputs", None):
+            inputs = data["inputs"]  # need impl input control class and methods.
+        return cls(
+            type=type,
+            title=title,
+            can_close_with_escape=data.get("can_close_with_escape", True),
+            pause=data.get("pause", True),
+            after_action=after_action,
+            external_title=external_title,
+            body=body,
+            inputs=inputs,
+        )
+
+
+class DialogNotice(DialogBase):
+    type: DialogType = field(init=False, default=DialogType.NOTICE)
+    # not finished yet.
+
+    def __post_init__(self):
+        self.type = DialogType.NOTICE
 
 
 if __name__ == "__main__":
-    print(type(DialogBase.after_action))
-    print(DialogBase.after_action)
-    print(DialogBase)
+    pass  # impl test logic here.
