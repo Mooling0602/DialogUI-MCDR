@@ -450,5 +450,11 @@ class DialogNotice(DialogBase):
         )
 
 
+@dataclass
+class DialogConfirmation(DialogBase):
+    type: DialogType = field(init=False, default=DialogType.CONFIRMATION)
+    # not finished yet.
+
+
 if __name__ == "__main__":
     pass  # impl simple test logic here.
