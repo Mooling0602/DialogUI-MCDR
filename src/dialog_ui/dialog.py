@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any, Self
 
-from mcdreforged.api.all import RTextBase
+from mcdreforged.api.all import RText, RTextBase
 
 
 class DialogType(Enum):
@@ -34,6 +34,31 @@ class DialogType(Enum):
     SERVER_LINKS = auto()
     """A dialog screen with scrollable list of server links.
     `Ref: <https://minecraft.wiki/w/Dialog#server_links>`__"""
+
+
+class DialogActionType(Enum):
+    @staticmethod
+    def _generate_next_value_(name: str, start: int, count: int, last_values: list):
+        """This method add a string "minecraft:" as namespace prefix to each types."""
+        _, _, _ = start, count, last_values
+        return f"minecraft:{name.lower()}"
+    
+    SHOW_DIALOG = auto()
+    OPEN_URL = auto()
+    RUN_COMMAND = auto()
+    SUGGEST_COMMAND = auto()
+    CHANGE_PAGE = auto()
+    COPY_TO_CLIPBOARD = auto()
+    CUSTOM = auto()
+
+
+class DialogActionTypeDynamic(Enum):
+    @staticmethod
+    def _generate_next_value_(name: str, start: int, count: int, last_values: list):
+        _, _, _ = start, count, last_values
+        return f"minecraft:dynamic/{name.lower()}"
+    RUN_COMMAND = auto()
+    CUSTOM = auto()
 
 
 class DialogAfterActionOperation(Enum):
@@ -140,9 +165,104 @@ class DialogBase:
         )
 
 
+@dataclass
+class DialogActionBase:
+    type: DialogActionType | DialogActionTypeDynamic
+
+
+class DialogActionShowDialog(DialogActionBase):
+    type: DialogActionType = field(init=False, default=DialogActionType.SHOW_DIALOG)
+    dialog: str | DialogBase
+
+    def __post_init__(self):
+        self.type = DialogActionType.SHOW_DIALOG
+
+
+class DialogActionOpenUrl(DialogActionBase):
+    type: DialogActionType = field(init=False, default=DialogActionType.OPEN_URL)
+    url: str
+
+    def __post_init__(self):
+        self.type = DialogActionType.OPEN_URL
+
+
+class DialogActionRunCommand(DialogActionBase):
+    type: DialogActionType = field(init=False, default=DialogActionType.RUN_COMMAND)
+    command: str
+
+    def __post_init__(self):
+        self.type = DialogActionType.RUN_COMMAND
+
+
+class DialogActionSuggestCommand(DialogActionBase):
+    type: DialogActionType = field(init=False, default=DialogActionType.SUGGEST_COMMAND)
+    command: str
+
+    def __post_init__(self):
+        self.type = DialogActionType.SUGGEST_COMMAND
+
+
+class DialogActionChangePage(DialogActionBase):
+    type: DialogActionType = field(init=False, default=DialogActionType.CHANGE_PAGE)
+    page: int
+
+    def __post_init__(self):
+        self.type = DialogActionType.CHANGE_PAGE
+
+
+class DialogActionCopyToClipboard(DialogActionBase):
+    type: DialogActionType = field(init=False, default=DialogActionType.COPY_TO_CLIPBOARD)
+    value: str
+
+    def __post_init__(self):
+        self.type = DialogActionType.COPY_TO_CLIPBOARD
+
+
+class DialogActionCustom(DialogActionBase):
+    type: DialogActionType = field(init=False, default=DialogActionType.CUSTOM)
+    id: str
+    payload: str | Any
+
+    def __post_init__(self):
+        self.type = DialogActionType.CUSTOM
+
+
+class DialogActionRunCommandDynamic(DialogActionBase):
+    type: DialogActionTypeDynamic = field(init=False, default=DialogActionTypeDynamic.RUN_COMMAND)
+    template: str
+
+    def __post_init__(self):
+        self.type = DialogActionTypeDynamic.RUN_COMMAND
+
+
+@dataclass
+class DialogActionCustomDynamic(DialogActionBase):
+    type: DialogActionTypeDynamic = field(init=False, default=DialogActionTypeDynamic.CUSTOM)
+    additions: dict
+    id: str
+
+    def __post_init__(self):
+        self.type = DialogActionTypeDynamic.CUSTOM
+
+
+@dataclass
+class DialogAction:
+    label: RTextBase
+    action: DialogActionBase
+
+
+@dataclass
+class DialogNoticeAction:
+    label: RTextBase = field(default_factory=lambda: RText("gui.ok"))
+    tooltip: RTextBase | None = None
+    width: int = 150
+    action: DialogAction | None = None
+
+
+@dataclass
 class DialogNotice(DialogBase):
     type: DialogType = field(init=False, default=DialogType.NOTICE)
-    # not finished yet.
+    action: DialogNoticeAction | None = None
 
     def __post_init__(self):
         self.type = DialogType.NOTICE
