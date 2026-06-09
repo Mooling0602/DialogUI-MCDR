@@ -1,8 +1,17 @@
+from abc import abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any, Self
 
 from mcdreforged.api.all import RText, RTextBase
+
+_minecraft_namespace = "minecraft:"
+
+
+def check_if_type_matched(value: str, expected: str) -> bool:
+    if not expected.startswith(_minecraft_namespace):
+        raise ValueError("Expected should be a 'minecraft:' prefixed string.")
+    return value == expected or f"{_minecraft_namespace}{value}" == expected
 
 
 class DialogType(Enum):
@@ -13,7 +22,7 @@ class DialogType(Enum):
     def _generate_next_value_(name: str, start: int, count: int, last_values: list):
         """This method add a string "minecraft:" as namespace prefix to each types."""
         _, _, _ = start, count, last_values
-        return f"minecraft:{name.lower()}"
+        return _minecraft_namespace + name.lower()
 
     CONFIRMATION = auto()
     """A dialog screen with yes and no action buttons in footer.
@@ -169,70 +178,183 @@ class DialogBase:
 class DialogActionBase:
     type: DialogActionType | DialogActionTypeDynamic
 
+    @abstractmethod
+    def to_dict(self) -> dict:
+        raise NotImplementedError("DialogActionBase does not support serialization, please use the specific dialog action class instead.")
+    
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        raise NotImplementedError("DialogActionBase does not support deserialization, please use the specific dialog action class instead.")
 
+
+@dataclass
 class DialogActionShowDialog(DialogActionBase):
     type: DialogActionType = field(init=False, default=DialogActionType.SHOW_DIALOG)
     dialog: str | DialogBase
 
-    def __post_init__(self):
-        self.type = DialogActionType.SHOW_DIALOG
+    def to_dict(self) -> dict:
+        return {
+            "type": self.type.value,
+            "dialog": self.dialog.to_dict() if isinstance(self.dialog, DialogBase) else self.dialog,
+        }
+    
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _type = data.get("type")
+        if not _type or not check_if_type_matched(_type, DialogActionType.SHOW_DIALOG.value):
+            raise ValueError("Invalid type for DialogActionShowDialog")
+        return cls(
+            dialog=data["dialog"]
+        )
 
 
+@dataclass
 class DialogActionOpenUrl(DialogActionBase):
     type: DialogActionType = field(init=False, default=DialogActionType.OPEN_URL)
     url: str
 
-    def __post_init__(self):
-        self.type = DialogActionType.OPEN_URL
+    def to_dict(self) -> dict:
+        return {
+            "type": self.type.value,
+            "url": self.url,
+        }
+    
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _type = data.get("type")
+        if not _type or not check_if_type_matched(_type, DialogActionType.OPEN_URL.value):
+            raise ValueError("Invalid type for DialogActionOpenUrl")
+        return cls(
+            url=data["url"]
+        )
 
 
+@dataclass
 class DialogActionRunCommand(DialogActionBase):
     type: DialogActionType = field(init=False, default=DialogActionType.RUN_COMMAND)
     command: str
 
-    def __post_init__(self):
-        self.type = DialogActionType.RUN_COMMAND
+    def to_dict(self) -> dict:
+        return {
+            "type": self.type.value,
+            "command": self.command,
+        }
+    
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _type = data.get("type")
+        if not _type or not check_if_type_matched(_type, DialogActionType.RUN_COMMAND.value):
+            raise ValueError("Invalid type for DialogActionRunCommand")
+        return cls(
+            command=data["command"]
+        )
 
 
+@dataclass
 class DialogActionSuggestCommand(DialogActionBase):
     type: DialogActionType = field(init=False, default=DialogActionType.SUGGEST_COMMAND)
     command: str
 
-    def __post_init__(self):
-        self.type = DialogActionType.SUGGEST_COMMAND
+    def to_dict(self) -> dict:
+        return {
+            "type": self.type.value,
+            "command": self.command,
+        }
 
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _type = data.get("type")
+        if not _type or not check_if_type_matched(_type, DialogActionType.SUGGEST_COMMAND.value):
+            raise ValueError("Invalid type for DialogActionSuggestCommand")
+        return cls(
+            command=data["command"]
+        )
 
+@dataclass
 class DialogActionChangePage(DialogActionBase):
     type: DialogActionType = field(init=False, default=DialogActionType.CHANGE_PAGE)
     page: int
 
-    def __post_init__(self):
-        self.type = DialogActionType.CHANGE_PAGE
+    def to_dict(self) -> dict:
+        return {
+            "type": self.type.value,
+            "page": self.page,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _type = data.get("type")
+        if not _type or not check_if_type_matched(_type, DialogActionType.CHANGE_PAGE.value):
+            raise ValueError("Invalid type for DialogActionChangePage")
+        return cls(
+            page=data["page"]
+        )
 
 
+@dataclass
 class DialogActionCopyToClipboard(DialogActionBase):
     type: DialogActionType = field(init=False, default=DialogActionType.COPY_TO_CLIPBOARD)
     value: str
 
-    def __post_init__(self):
-        self.type = DialogActionType.COPY_TO_CLIPBOARD
+    def to_dict(self) -> dict:
+        return {
+            "type": self.type.value,
+            "value": self.value,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _type = data.get("type")
+        if not _type or not check_if_type_matched(_type, DialogActionType.COPY_TO_CLIPBOARD.value):
+            raise ValueError("Invalid type for DialogActionCopyToClipboard")
+        return cls(
+            value=data["value"]
+        )
 
 
+@dataclass
 class DialogActionCustom(DialogActionBase):
     type: DialogActionType = field(init=False, default=DialogActionType.CUSTOM)
     id: str
     payload: str | Any
 
-    def __post_init__(self):
-        self.type = DialogActionType.CUSTOM
+    def to_dict(self) -> dict:
+        return {
+            "type": self.type.value,
+            "id": self.id,
+            "payload": self.payload,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _type = data.get("type")
+        if not _type or not check_if_type_matched(_type, DialogActionType.CUSTOM.value):
+            raise ValueError("Invalid type for DialogActionCustom")
+        return cls(
+            id=data["id"],
+            payload=data["payload"],
+        )
 
 
+@dataclass
 class DialogActionRunCommandDynamic(DialogActionBase):
     type: DialogActionTypeDynamic = field(init=False, default=DialogActionTypeDynamic.RUN_COMMAND)
     template: str
 
-    def __post_init__(self):
-        self.type = DialogActionTypeDynamic.RUN_COMMAND
+    def to_dict(self) -> dict:
+        return {
+            "type": self.type.value,
+            "template": self.template,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _type = data.get("type")
+        if not _type or not check_if_type_matched(_type, DialogActionTypeDynamic.RUN_COMMAND.value):
+            raise ValueError("Invalid type for DialogActionRunCommandDynamic")
+        return cls(
+            template=data["template"]
+        )
 
 
 @dataclass
@@ -241,14 +363,41 @@ class DialogActionCustomDynamic(DialogActionBase):
     additions: dict
     id: str
 
-    def __post_init__(self):
-        self.type = DialogActionTypeDynamic.CUSTOM
+    def to_dict(self) -> dict:
+        return {
+            "type": self.type.value,
+            "additions": self.additions,
+            "id": self.id,
+        }
+    
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _type = data.get("type")
+        if not _type or not check_if_type_matched(_type, DialogActionTypeDynamic.CUSTOM.value):
+            raise ValueError("Invalid type for DialogActionCustomDynamic")
+        return cls(
+            additions=data["additions"],
+            id=data["id"],
+        )
 
 
 @dataclass
 class DialogAction:
     label: RTextBase
     action: DialogActionBase
+
+    def to_dict(self) -> dict:
+        return {
+            "label": self.label.to_json_object(),
+            "action": self.action.to_dict(),
+        }
+    
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        return cls(
+            label=RTextBase.from_json_object(data["label"]),
+            action=DialogActionBase.from_dict(data["action"]),
+        )
 
 
 @dataclass
@@ -258,15 +407,48 @@ class DialogNoticeAction:
     width: int = 150
     action: DialogAction | None = None
 
+    def to_dict(self) -> dict:
+        result = {
+            "label": self.label.to_json_object(),
+            "width": self.width,
+        }
+        if self.tooltip:
+            result.update({"tooltip": self.tooltip.to_json_object()})
+        if self.action:
+            result.update({"action": self.action.to_dict()})
+        return result
+    
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        return cls(
+            label=RTextBase.from_json_object(data["label"]),
+            tooltip=RTextBase.from_json_object(data["tooltip"]) if "tooltip" in data else None,
+            width=data["width"],
+            action=DialogAction.from_dict(data["action"]) if "action" in data else None,
+        )
+
 
 @dataclass
 class DialogNotice(DialogBase):
     type: DialogType = field(init=False, default=DialogType.NOTICE)
     action: DialogNoticeAction | None = None
 
-    def __post_init__(self):
-        self.type = DialogType.NOTICE
+    def to_dict(self) -> dict:
+        result = super().to_dict()
+        if self.action:
+            result.update({"action": self.action.to_dict()})
+        return result
+    
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _type = data.get("type")
+        if not _type or not check_if_type_matched(_type, DialogType.NOTICE.value):
+            raise ValueError("Invalid type for DialogNotice")
+        return cls(
+            title=RTextBase.from_json_object(data["title"]),
+            action=DialogNoticeAction.from_dict(data["action"]) if "action" in data else None,
+        )
 
 
 if __name__ == "__main__":
-    pass  # impl test logic here.
+    pass  # impl simple test logic here.
