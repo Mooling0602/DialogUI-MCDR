@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any, Self
+from typing import Any, Self, cast
 
 from mcdreforged.api.all import RText, RTextBase
 
@@ -149,29 +149,33 @@ class DialogBase:
     """Optional list of body elements or a single body element.
     `Ref: <https://minecraft.wiki/w/Dialog#Body_format>`__"""
 
-    inputs: list | None = None  # need impl class
+    inputs: list[DialogInputsBase] | None = None
     """Optional list of input controls.
     `Ref: <https://minecraft.wiki/w/Dialog#Input_control_format>`__"""
 
     def to_dict(self) -> dict:
         """Convert the dataclass to a dict with correct data structure for the dialog component."""
-        return {
+        result: dict[str, Any] = {
             "type": self.type.value,
             "title": self.title.to_json_object(),
-            "external_title": self.external_title.to_json_object()
-            if self.external_title is not None
-            else None,
-            "body": self.body.to_dict() if isinstance(self.body, DialogBodyBase) else [element.to_dict() for element in self.body] if self.body else None,
-            "inputs": [input_control.to_dict() for input_control in self.inputs]
-            if self.inputs
-            else None,
             "can_close_with_escape": self.can_close_with_escape,
             "pause": self.pause,
             "after_action": self.after_action.value,
         }
+        if self.external_title is not None:
+            result["external_title"] = self.external_title.to_json_object()
+        if self.body is not None:
+            if isinstance(self.body, list):
+                result["body"] = [element.to_dict() for element in cast(list[DialogBodyBase], self.body)]
+            else:
+                result["body"] = self.body.to_dict()
+        if self.inputs is not None:
+            result["inputs"] = [input_control.to_dict() for input_control in self.inputs]
+        return result
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
+    def _parse_base_kwargs(cls, data: dict[str, Any]) -> dict[str, Any]:
+        """Parse base class fields from dict, returning a dict of kwargs for __init__."""
         after_action_option = data.get("after_action", "close")
         after_action = DialogAfterActionOperation(after_action_option)
         title = RTextBase.from_json_object(data["title"])
@@ -180,19 +184,40 @@ class DialogBase:
             external_title = RTextBase.from_json_object(data["external_title"])
         body = None
         if data.get("body", None):
-            body = data["body"]  # need impl body element class and methods.
+            body_data = data["body"]
+            if isinstance(body_data, list):
+                body = [DialogBodyBase.from_dict(item) for item in body_data]
+            elif isinstance(body_data, dict):
+                body = DialogBodyBase.from_dict(body_data)
+            else:
+                body = body_data
         inputs = None
         if data.get("inputs", None):
-            inputs = data["inputs"]  # need impl input control class and methods.
-        return cls(
-            title=title,
-            can_close_with_escape=data.get("can_close_with_escape", True),
-            pause=data.get("pause", True),
-            after_action=after_action,
-            external_title=external_title,
-            body=body,
-            inputs=inputs,
-        )
+            inputs = [DialogInputsBase.from_dict(item) for item in data["inputs"]]
+        return {
+            "title": title,
+            "can_close_with_escape": data.get("can_close_with_escape", True),
+            "pause": data.get("pause", True),
+            "after_action": after_action,
+            "external_title": external_title,
+            "body": body,
+            "inputs": inputs,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> DialogBase:
+        _dialog_type_dispatch: dict[str, type[DialogBase]] = {
+            DialogType.NOTICE.value: DialogNotice,
+            DialogType.CONFIRMATION.value: DialogConfirmation,
+            DialogType.MULTI_ACTION.value: DialogMultiAction,
+            DialogType.SERVER_LINKS.value: DialogServerLinks,
+            DialogType.DIALOG_LIST.value: DialogList,
+        }
+        dialog_type = data.get("type", "")
+        dialog_cls = _dialog_type_dispatch.get(dialog_type)
+        if dialog_cls is None:
+            raise ValueError(f"Unknown dialog type: {dialog_type}")
+        return dialog_cls.from_dict(data)
 
 
 @dataclass
@@ -206,8 +231,23 @@ class DialogActionBase:
         raise NotImplementedError("DialogActionBase does not support serialization, please use the specific dialog action class instead.")
     
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        raise NotImplementedError("DialogActionBase does not support deserialization, please use the specific dialog action class instead.")
+    def from_dict(cls, data: dict[str, Any]) -> DialogActionBase:
+        _action_type_dispatch: dict[str, type[DialogActionBase]] = {
+            DialogActionType.SHOW_DIALOG.value: DialogActionShowDialog,
+            DialogActionType.OPEN_URL.value: DialogActionOpenUrl,
+            DialogActionType.RUN_COMMAND.value: DialogActionRunCommand,
+            DialogActionType.SUGGEST_COMMAND.value: DialogActionSuggestCommand,
+            DialogActionType.CHANGE_PAGE.value: DialogActionChangePage,
+            DialogActionType.COPY_TO_CLIPBOARD.value: DialogActionCopyToClipboard,
+            DialogActionType.CUSTOM.value: DialogActionCustom,
+            DialogActionTypeDynamic.RUN_COMMAND.value: DialogActionRunCommandDynamic,
+            DialogActionTypeDynamic.CUSTOM.value: DialogActionCustomDynamic,
+        }
+        action_type = data.get("type", "")
+        action_cls = _action_type_dispatch.get(action_type)
+        if action_cls is None:
+            raise ValueError(f"Unknown action type: {action_type}")
+        return action_cls.from_dict(data)
 
 
 @dataclass
@@ -472,7 +512,7 @@ class DialogNoticeAction:
         }
         if self.tooltip:
             result.update({"tooltip": self.tooltip.to_json_object()})
-        if self.width:
+        if self.width is not None:
             result.update({"width": self.width})
         if self.action:
             result.update({"action": self.action.to_dict()})
@@ -483,7 +523,7 @@ class DialogNoticeAction:
         return cls(
             label=RTextBase.from_json_object(data["label"]),
             tooltip=RTextBase.from_json_object(data["tooltip"]) if "tooltip" in data else None,
-            width=data["width"],
+            width=data.get("width", None),
             action=DialogAction.from_dict(data["action"]) if "action" in data else None,
         )
 
@@ -508,10 +548,9 @@ class DialogNotice(DialogBase):
         _type = data.get("type")
         if not _type or not check_if_type_matched(_type, DialogType.NOTICE.value):
             raise ValueError("Invalid type for DialogNotice")
-        return cls(
-            title=RTextBase.from_json_object(data["title"]),
-            action=DialogNoticeAction.from_dict(data["action"]) if "action" in data else None,
-        )
+        kwargs = cls._parse_base_kwargs(data)
+        kwargs["action"] = DialogNoticeAction.from_dict(data["action"]) if "action" in data else None
+        return cls(**kwargs)
 
 
 @dataclass
@@ -538,11 +577,10 @@ class DialogConfirmation(DialogBase):
         _type = data.get("type")
         if not _type or not check_if_type_matched(_type, DialogType.CONFIRMATION.value):
             raise ValueError("Invalid type for DialogConfirmation")
-        return cls(
-            title=RTextBase.from_json_object(data["title"]),
-            yes=DialogNoticeAction.from_dict(data["yes"]),
-            no=DialogNoticeAction.from_dict(data["no"]),
-        )
+        kwargs = cls._parse_base_kwargs(data)
+        kwargs["yes"] = DialogNoticeAction.from_dict(data["yes"])
+        kwargs["no"] = DialogNoticeAction.from_dict(data["no"])
+        return cls(**kwargs)
 
 
 @dataclass
@@ -562,7 +600,7 @@ class DialogMultiAction(DialogBase):
         result.update({
             "actions": [action.to_dict() for action in self.actions],
         })
-        if self.columns:
+        if self.columns is not None:
             result.update({"columns": self.columns})
         if self.exit_action:
             result.update({"exit_action": self.exit_action.to_dict()})
@@ -573,12 +611,11 @@ class DialogMultiAction(DialogBase):
         _type = data.get("type")
         if not _type or not check_if_type_matched(_type, DialogType.MULTI_ACTION.value):
             raise ValueError("Invalid type for DialogMultiAction")
-        return cls(
-            title=RTextBase.from_json_object(data["title"]),
-            actions=[DialogNoticeAction.from_dict(action) for action in data["actions"]],
-            columns=data.get("columns", None),
-            exit_action=DialogNoticeAction.from_dict(data["exit_action"]) if "exit_action" in data else None,
-        )
+        kwargs = cls._parse_base_kwargs(data)
+        kwargs["actions"] = [DialogNoticeAction.from_dict(action) for action in data["actions"]]
+        kwargs["columns"] = data.get("columns", None)
+        kwargs["exit_action"] = DialogNoticeAction.from_dict(data["exit_action"]) if "exit_action" in data else None
+        return cls(**kwargs)
 
 
 @dataclass
@@ -597,9 +634,9 @@ class DialogServerLinks(DialogBase):
         result: dict[str, Any] = super().to_dict()
         if self.exit_action:
             result.update({"exit_action": self.exit_action.to_dict()})
-        if self.columns:
+        if self.columns is not None:
             result.update({"columns": self.columns})
-        if self.button_width:
+        if self.button_width is not None:
             result.update({"button_width": self.button_width})
         return result
     
@@ -608,12 +645,11 @@ class DialogServerLinks(DialogBase):
         _type = data.get("type")
         if not _type or not check_if_type_matched(_type, DialogType.SERVER_LINKS.value):
             raise ValueError("Invalid type for DialogServerLinks")
-        return cls(
-            title=RTextBase.from_json_object(data["title"]),
-            exit_action=DialogNoticeAction.from_dict(data["exit_action"]) if "exit_action" in data else None,
-            columns=data.get("columns", None),
-            button_width=data.get("button_width", None),
-        )
+        kwargs = cls._parse_base_kwargs(data)
+        kwargs["exit_action"] = DialogNoticeAction.from_dict(data["exit_action"]) if "exit_action" in data else None
+        kwargs["columns"] = data.get("columns", None)
+        kwargs["button_width"] = data.get("button_width", None)
+        return cls(**kwargs)
 
 
 @dataclass
@@ -639,9 +675,9 @@ class DialogList(DialogBase):
             result.update({"dialogs": self.dialogs.to_dict()})
         if self.exit_action:
             result.update({"exit_action": self.exit_action.to_dict()})
-        if self.columns:
+        if self.columns is not None:
             result.update({"columns": self.columns})
-        if self.button_width:
+        if self.button_width is not None:
             result.update({"button_width": self.button_width})
         return result
     
@@ -665,13 +701,12 @@ class DialogList(DialogBase):
         else:
             dialogs = dialogs_data
         
-        return cls(
-            title=RTextBase.from_json_object(data["title"]),
-            dialogs=dialogs,
-            exit_action=DialogNoticeAction.from_dict(data["exit_action"]) if "exit_action" in data else None,
-            columns=data.get("columns", None),
-            button_width=data.get("button_width", None),
-        )
+        kwargs = cls._parse_base_kwargs(data)
+        kwargs["dialogs"] = dialogs
+        kwargs["exit_action"] = DialogNoticeAction.from_dict(data["exit_action"]) if "exit_action" in data else None
+        kwargs["columns"] = data.get("columns", None)
+        kwargs["button_width"] = data.get("button_width", None)
+        return cls(**kwargs)
 
 
 @dataclass
@@ -689,8 +724,16 @@ class DialogBodyBase:
         raise NotImplementedError("DialogBodyBase does not support serialization, please use the specific dialog body class instead.")
     
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        raise NotImplementedError("DialogBodyBase does not support deserialization, please use the specific dialog body class instead.")
+    def from_dict(cls, data: dict[str, Any]) -> DialogBodyBase:
+        _body_type_dispatch: dict[str, type[DialogBodyBase]] = {
+            DialogBodyType.PLAIN_MESSAGE.value: DialogBodyPlainMessage,
+            DialogBodyType.ITEM.value: DialogBodyItem,
+        }
+        body_type = data.get("type", "")
+        body_cls = _body_type_dispatch.get(body_type)
+        if body_cls is None:
+            raise ValueError(f"Unknown body type: {body_type}")
+        return body_cls.from_dict(data)
 
 
 @dataclass
@@ -705,11 +748,13 @@ class DialogBodyPlainMessage(DialogBodyBase):
     width: int | None = None
 
     def to_dict(self) -> dict:
-        result = super().to_dict()
+        result: dict[str, Any] = {
+            "type": self.type.value,
+        }
         result.update({
             "contents": self.contents.to_json_object(),
         })
-        if self.width:
+        if self.width is not None:
             result.update({"width": self.width})
         return result
     
@@ -734,16 +779,29 @@ class DialogBodyItemDescription:
         if self.contents:
             if isinstance(self.contents, RTextBase):
                 result.update({"contents": self.contents.to_json_object()})
+            elif isinstance(self.contents, list):
+                result.update({"contents": [
+                    item.to_json_object() if isinstance(item, RTextBase) else item
+                    for item in self.contents
+                ]})
             else:
                 result.update({"contents": self.contents})
-        if self.width:
+        if self.width is not None:
             result.update({"width": self.width})
         return result
     
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
+        contents = data.get("contents", None)
+        if isinstance(contents, dict):
+            contents = RTextBase.from_json_object(contents)
+        elif isinstance(contents, list):
+            contents = [
+                RTextBase.from_json_object(item) if isinstance(item, dict) else item
+                for item in contents
+            ]
         return cls(
-            contents=data.get("contents", None),
+            contents=contents,
             width=data.get("width", None),
         )
 
@@ -757,7 +815,7 @@ class DialogBodyItemObject:
     def to_dict(self) -> dict:
         result = {}
         result.update({"id": self.id})
-        if self.count:
+        if self.count is not None:
             result.update({"count": self.count})
         if self.components:
             result.update({"components": self.components})
@@ -788,7 +846,9 @@ class DialogBodyItem(DialogBodyBase):
     height: int | None = None
 
     def to_dict(self) -> dict:
-        result = super().to_dict()
+        result: dict[str, Any] = {
+            "type": self.type.value,
+        }
         
         # 处理 description 的序列化
         if self.description is None:
@@ -807,13 +867,14 @@ class DialogBodyItem(DialogBodyBase):
         
         result.update({
             "item": self.item.to_dict(),
-            "description": description_serialized,
             "show_decoration": self.show_decoration,
             "show_tooltip": self.show_tooltip,
         })
-        if self.width:
+        if self.description is not None:
+            result["description"] = description_serialized
+        if self.width is not None:
             result.update({"width": self.width})
-        if self.height:
+        if self.height is not None:
             result.update({"height": self.height})
         return result
     
@@ -822,9 +883,25 @@ class DialogBodyItem(DialogBodyBase):
         _type = data.get("type")
         if not _type or not check_if_type_matched(_type, DialogBodyType.ITEM.value):
             raise ValueError("Invalid type for DialogBodyItem")
+        
+        description: str | list[str | RTextBase] | RTextBase | DialogBodyItemDescription | None = None
+        if "description" in data and data["description"] is not None:
+            raw_desc = data["description"]
+            if isinstance(raw_desc, dict) and "contents" in raw_desc:
+                description = DialogBodyItemDescription.from_dict(raw_desc)
+            elif isinstance(raw_desc, dict):
+                description = RTextBase.from_json_object(raw_desc)
+            elif isinstance(raw_desc, list):
+                description = [
+                    RTextBase.from_json_object(item) if isinstance(item, dict) else item
+                    for item in raw_desc
+                ]
+            else:
+                description = raw_desc
+        
         return cls(
             item=DialogBodyItemObject.from_dict(data["item"]),
-            description=DialogBodyItemDescription.from_dict(data["description"]) if "description" in data else None,
+            description=description,
             show_decoration=data.get("show_decoration", True),
             show_tooltip=data.get("show_tooltip", True),
             width=data.get("width", None),
@@ -834,7 +911,10 @@ class DialogBodyItem(DialogBodyBase):
 
 @dataclass
 class DialogInputsBase:
-    type: DialogInputsType
+    @property
+    @abstractmethod
+    def type(self) -> DialogInputsType: ...
+
     key: str
     label: RTextBase
 
@@ -846,12 +926,18 @@ class DialogInputsBase:
         }
     
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        return cls(
-            type=DialogInputsType(data["type"]),
-            key=data["key"],
-            label=RTextBase.from_json_object(data["label"]),
-        )
+    def from_dict(cls, data: dict[str, Any]) -> DialogInputsBase:
+        _inputs_type_dispatch: dict[str, type[DialogInputsBase]] = {
+            DialogInputsType.TEXT.value: DialogInputsText,
+            DialogInputsType.BOOLEAN.value: DialogInputsBoolean,
+            DialogInputsType.SINGLE_OPTION.value: DialogInputsSingleOption,
+            DialogInputsType.NUMBER_RANGE.value: DialogInputsNumberRange,
+        }
+        inputs_type = data.get("type", "")
+        inputs_cls = _inputs_type_dispatch.get(inputs_type)
+        if inputs_cls is None:
+            raise ValueError(f"Unknown inputs type: {inputs_type}")
+        return inputs_cls.from_dict(data)
 
 
 @dataclass
@@ -861,9 +947,9 @@ class DialogInputsTextMultiline:
 
     def to_dict(self) -> dict:
         result = {}
-        if self.max_lines:
+        if self.max_lines is not None:
             result.update({"max_lines": self.max_lines})
-        if self.height:
+        if self.height is not None:
             result.update({"height": self.height})
         return result
 
@@ -892,18 +978,21 @@ class DialogInputsText(DialogInputsBase):
     def to_dict(self) -> dict:
         result = super().to_dict()
         result.update({
-            "width": self.width,
             "label_visible": self.label_visible,
-            "initial": self.initial,
-            "max_length": self.max_length,
-            "multiline": self.multiline.to_dict() if self.multiline else None,
         })
+        if self.width is not None:
+            result["width"] = self.width
+        if self.initial is not None:
+            result["initial"] = self.initial
+        if self.max_length is not None:
+            result["max_length"] = self.max_length
+        if self.multiline is not None:
+            result["multiline"] = self.multiline.to_dict()
         return result
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
         return cls(
-            type=DialogInputsType(data["type"]),
             key=data["key"],
             label=RTextBase.from_json_object(data["label"]),
             width=data.get("width", None),
@@ -930,15 +1019,16 @@ class DialogInputsBoolean(DialogInputsBase):
         result = super().to_dict()
         result.update({
             "initial": self.initial,
-            "on_true": self.on_true,
-            "on_false": self.on_false,
         })
+        if self.on_true is not None:
+            result["on_true"] = self.on_true
+        if self.on_false is not None:
+            result["on_false"] = self.on_false
         return result
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
         return cls(
-            type=DialogInputsType(data["type"]),
             key=data["key"],
             label=RTextBase.from_json_object(data["label"]),
             initial=data.get("initial", False),
@@ -963,7 +1053,7 @@ class DialogInputsSingleOptionCompound:
                 result.update({"display": [item.to_json_object() if isinstance(item, RTextBase) else item for item in self.display]})
             else:
                 result.update({"display": self.display})
-        if self.initial:
+        if self.initial is not None:
             result.update({"initial": self.initial})
         return result
     
@@ -1005,14 +1095,14 @@ class DialogInputsSingleOption(DialogInputsBase):
         result.update({
             "options": [option.to_dict() for option in self.options],
             "label_visible": self.label_visible,
-            "width": self.width,
         })
+        if self.width is not None:
+            result["width"] = self.width
         return result
     
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
         return cls(
-            type=DialogInputsType(data["type"]),
             key=data["key"],
             label=RTextBase.from_json_object(data["label"]),
             options=[DialogInputsSingleOptionCompound.from_dict(option) for option in data["options"]],
@@ -1041,17 +1131,20 @@ class DialogInputsNumberRange(DialogInputsBase):
         result.update({
             "start": self.start,
             "end": self.end,
-            "label_format": self.label_format,
-            "width": self.width,
-            "step": self.step,
-            "initial": self.initial,
         })
+        if self.label_format is not None:
+            result["label_format"] = self.label_format
+        if self.width is not None:
+            result["width"] = self.width
+        if self.step is not None:
+            result["step"] = self.step
+        if self.initial is not None:
+            result["initial"] = self.initial
         return result
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
         return cls(
-            type=DialogInputsType(data["type"]),
             key=data["key"],
             label=RTextBase.from_json_object(data["label"]),
             start=data["start"],
