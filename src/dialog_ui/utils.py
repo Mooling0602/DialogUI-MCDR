@@ -78,7 +78,9 @@ def json_str_to_dict(json_str: str, **kwargs) -> dict:
     return json.loads(json_str, **kwargs)
 
 
-def _detect_encoding(file_path: str, encodings: tuple[str, ...] = ("utf-8", "gbk")) -> str:
+def _detect_encoding(
+    file_path: str, encodings: tuple[str, ...] = ("utf-8", "gbk")
+) -> str:
     """Try to detect the encoding of a text file.
 
     :param file_path: Path to the file.
@@ -110,9 +112,7 @@ def dict_to_json_file(
         json.dump(data, f, **kwargs)
 
 
-def json_file_to_dict(
-    file_path: str, encoding: str | None = None, **kwargs
-) -> dict:
+def json_file_to_dict(file_path: str, encoding: str | None = None, **kwargs) -> dict:
     """Read a JSON file and deserialize it to a dict.
 
     :param file_path: Path to the JSON file.

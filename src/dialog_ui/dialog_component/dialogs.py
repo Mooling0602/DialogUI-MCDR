@@ -1,4 +1,5 @@
 """Concrete dialog classes: DialogNotice, DialogConfirmation, DialogMultiAction, DialogServerLinks, DialogList."""
+
 from dataclasses import dataclass, field
 from typing import Any, Self
 

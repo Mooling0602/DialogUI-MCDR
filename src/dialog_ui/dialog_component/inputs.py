@@ -206,7 +206,13 @@ class DialogInputsSingleOptionCompound:
         result.update({"id": self.id})
         if self.display:
             if isinstance(self.display, RTextBase):
-                result.update({"display": self.display.to_json_object(json_format=RTextJsonFormat.V_1_21_5)})
+                result.update(
+                    {
+                        "display": self.display.to_json_object(
+                            json_format=RTextJsonFormat.V_1_21_5
+                        )
+                    }
+                )
             elif isinstance(self.display, list):
                 result.update(
                     {

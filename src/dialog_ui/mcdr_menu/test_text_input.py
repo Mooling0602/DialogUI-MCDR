@@ -18,13 +18,11 @@ dialog = DialogMultiAction(
                         "Please input the text here you want to send."
                     )
                 )
-            )
+            ),
         )
     ],
     pause=False,
-    actions=[
-        DialogActionRunCommandDynamic("say $(text_input)")
-    ]
+    actions=[DialogActionRunCommandDynamic("say $(text_input)")],
 )
 
 

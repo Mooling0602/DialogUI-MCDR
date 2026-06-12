@@ -65,7 +65,9 @@ class DialogBodyPlainMessage(DialogBodyBase):
         }
         result.update(
             {
-                "contents": self.contents.to_json_object(json_format=RTextJsonFormat.V_1_21_5),
+                "contents": self.contents.to_json_object(
+                    json_format=RTextJsonFormat.V_1_21_5
+                ),
             }
         )
         if self.width is not None:
@@ -102,7 +104,13 @@ class DialogBodyItemDescription:
         result = {}
         if self.contents:
             if isinstance(self.contents, RTextBase):
-                result.update({"contents": self.contents.to_json_object(json_format=RTextJsonFormat.V_1_21_5)})
+                result.update(
+                    {
+                        "contents": self.contents.to_json_object(
+                            json_format=RTextJsonFormat.V_1_21_5
+                        )
+                    }
+                )
             elif isinstance(self.contents, list):
                 result.update(
                     {
@@ -214,10 +222,14 @@ class DialogBodyItem(DialogBodyBase):
         elif isinstance(self.description, DialogBodyItemDescription):
             description_serialized = self.description.to_dict()
         elif isinstance(self.description, RTextBase):
-            description_serialized = self.description.to_json_object(json_format=RTextJsonFormat.V_1_21_5)
+            description_serialized = self.description.to_json_object(
+                json_format=RTextJsonFormat.V_1_21_5
+            )
         elif isinstance(self.description, list):
             description_serialized = [
-                item.to_json_object(json_format=RTextJsonFormat.V_1_21_5) if isinstance(item, RTextBase) else item
+                item.to_json_object(json_format=RTextJsonFormat.V_1_21_5)
+                if isinstance(item, RTextBase)
+                else item
                 for item in self.description
             ]
         else:

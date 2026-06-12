@@ -3,6 +3,7 @@
 Separated from __init__.py to break the circular import with action.py:
   base.py <-- action.py, dialogs.py (no cycle)
 """
+
 from abc import abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Self, cast
@@ -70,7 +71,9 @@ class DialogBase:
             "after_action": self.after_action.value,
         }
         if self.external_title is not None:
-            result["external_title"] = self.external_title.to_json_object(json_format=RTextJsonFormat.V_1_21_5)
+            result["external_title"] = self.external_title.to_json_object(
+                json_format=RTextJsonFormat.V_1_21_5
+            )
         if self.body is not None:
             if isinstance(self.body, list):
                 result["body"] = [
@@ -165,7 +168,13 @@ class DialogNoticeAction:
             "label": self.label.to_json_object(json_format=RTextJsonFormat.V_1_21_5),
         }
         if self.tooltip:
-            result.update({"tooltip": self.tooltip.to_json_object(json_format=RTextJsonFormat.V_1_21_5)})
+            result.update(
+                {
+                    "tooltip": self.tooltip.to_json_object(
+                        json_format=RTextJsonFormat.V_1_21_5
+                    )
+                }
+            )
         if self.width is not None:
             result.update({"width": self.width})
         if self.action:
