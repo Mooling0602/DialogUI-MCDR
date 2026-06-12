@@ -7,7 +7,7 @@ from abc import abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Self
 
-from mcdreforged.api.all import RTextBase
+from mcdreforged.api.all import RTextBase, RTextJsonFormat
 
 from dialog_ui.dialog_component.types import DialogBodyType, check_if_type_matched
 
@@ -65,7 +65,7 @@ class DialogBodyPlainMessage(DialogBodyBase):
         }
         result.update(
             {
-                "contents": self.contents.to_json_object(),
+                "contents": self.contents.to_json_object(json_format=RTextJsonFormat.V_1_21_5),
             }
         )
         if self.width is not None:
@@ -102,12 +102,12 @@ class DialogBodyItemDescription:
         result = {}
         if self.contents:
             if isinstance(self.contents, RTextBase):
-                result.update({"contents": self.contents.to_json_object()})
+                result.update({"contents": self.contents.to_json_object(json_format=RTextJsonFormat.V_1_21_5)})
             elif isinstance(self.contents, list):
                 result.update(
                     {
                         "contents": [
-                            item.to_json_object()
+                            item.to_json_object(json_format=RTextJsonFormat.V_1_21_5)
                             if isinstance(item, RTextBase)
                             else item
                             for item in self.contents
@@ -214,10 +214,10 @@ class DialogBodyItem(DialogBodyBase):
         elif isinstance(self.description, DialogBodyItemDescription):
             description_serialized = self.description.to_dict()
         elif isinstance(self.description, RTextBase):
-            description_serialized = self.description.to_json_object()
+            description_serialized = self.description.to_json_object(json_format=RTextJsonFormat.V_1_21_5)
         elif isinstance(self.description, list):
             description_serialized = [
-                item.to_json_object() if isinstance(item, RTextBase) else item
+                item.to_json_object(json_format=RTextJsonFormat.V_1_21_5) if isinstance(item, RTextBase) else item
                 for item in self.description
             ]
         else:

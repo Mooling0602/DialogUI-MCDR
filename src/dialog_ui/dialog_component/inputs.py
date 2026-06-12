@@ -7,7 +7,7 @@ from abc import abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Self
 
-from mcdreforged.api.all import RTextBase
+from mcdreforged.api.all import RTextBase, RTextJsonFormat
 
 from dialog_ui.dialog_component.types import DialogInputsType
 
@@ -32,7 +32,7 @@ class DialogInputsBase:
         return {
             "type": self.type.value,
             "key": self.key,
-            "label": self.label.to_json_object(),
+            "label": self.label.to_json_object(json_format=RTextJsonFormat.V_1_21_5),
         }
 
     @classmethod
@@ -206,12 +206,12 @@ class DialogInputsSingleOptionCompound:
         result.update({"id": self.id})
         if self.display:
             if isinstance(self.display, RTextBase):
-                result.update({"display": self.display.to_json_object()})
+                result.update({"display": self.display.to_json_object(json_format=RTextJsonFormat.V_1_21_5)})
             elif isinstance(self.display, list):
                 result.update(
                     {
                         "display": [
-                            item.to_json_object()
+                            item.to_json_object(json_format=RTextJsonFormat.V_1_21_5)
                             if isinstance(item, RTextBase)
                             else item
                             for item in self.display

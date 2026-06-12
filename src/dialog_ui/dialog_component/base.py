@@ -3,12 +3,11 @@
 Separated from __init__.py to break the circular import with action.py:
   base.py <-- action.py, dialogs.py (no cycle)
 """
-
 from abc import abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Self, cast
 
-from mcdreforged.api.all import RText, RTextBase
+from mcdreforged.api.all import RText, RTextBase, RTextJsonFormat
 
 from dialog_ui.dialog_component.body import DialogBodyBase
 from dialog_ui.dialog_component.inputs import DialogInputsBase
@@ -65,13 +64,13 @@ class DialogBase:
         """Convert the dataclass to a dict with correct data structure for the dialog component."""
         result: dict[str, Any] = {
             "type": self.type.value,
-            "title": self.title.to_json_object(),
+            "title": self.title.to_json_object(json_format=RTextJsonFormat.V_1_21_5),
             "can_close_with_escape": self.can_close_with_escape,
             "pause": self.pause,
             "after_action": self.after_action.value,
         }
         if self.external_title is not None:
-            result["external_title"] = self.external_title.to_json_object()
+            result["external_title"] = self.external_title.to_json_object(json_format=RTextJsonFormat.V_1_21_5)
         if self.body is not None:
             if isinstance(self.body, list):
                 result["body"] = [
@@ -163,10 +162,10 @@ class DialogNoticeAction:
 
     def to_dict(self) -> dict:
         result: dict[str, Any] = {
-            "label": self.label.to_json_object(),
+            "label": self.label.to_json_object(json_format=RTextJsonFormat.V_1_21_5),
         }
         if self.tooltip:
-            result.update({"tooltip": self.tooltip.to_json_object()})
+            result.update({"tooltip": self.tooltip.to_json_object(json_format=RTextJsonFormat.V_1_21_5)})
         if self.width is not None:
             result.update({"width": self.width})
         if self.action:

@@ -7,7 +7,7 @@ from abc import abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Self
 
-from mcdreforged.api.all import RTextBase
+from mcdreforged.api.all import RTextBase, RTextJsonFormat
 
 from dialog_ui.dialog_component.base import DialogBase
 from dialog_ui.dialog_component.types import (
@@ -375,7 +375,7 @@ class DialogAction:
 
     def to_dict(self) -> dict:
         return {
-            "label": self.label.to_json_object(),
+            "label": self.label.to_json_object(json_format=RTextJsonFormat.V_1_21_5),
             "action": self.action.to_dict(),
         }
 
