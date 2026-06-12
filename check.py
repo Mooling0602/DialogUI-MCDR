@@ -5,6 +5,7 @@ import subprocess
 STEPS = [
     ("ty", ["ty", "check", "src"]),
     ("ruff", ["ruff", "check", "src"]),
+    ("ruff", ["ruff", "format", "--check", "src"])
 ]
 
 

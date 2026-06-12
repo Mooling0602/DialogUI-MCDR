@@ -15,6 +15,7 @@ from dialog_ui.dialog_component.types import (
     DialogActionTypeDynamic,
     check_if_type_matched,
 )
+from dialog_ui.utils import rtext_to_safe_json
 
 
 @dataclass
@@ -375,7 +376,9 @@ class DialogAction:
 
     def to_dict(self) -> dict:
         return {
-            "label": self.label.to_json_object(json_format=RTextJsonFormat.V_1_21_5),
+            "label": rtext_to_safe_json(
+                self.label, json_format=RTextJsonFormat.V_1_21_5
+            ),
             "action": self.action.to_dict(),
         }
 

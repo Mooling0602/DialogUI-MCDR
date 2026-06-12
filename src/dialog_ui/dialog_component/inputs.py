@@ -10,6 +10,7 @@ from typing import Any, Self
 from mcdreforged.api.all import RTextBase, RTextJsonFormat
 
 from dialog_ui.dialog_component.types import DialogInputsType
+from dialog_ui.utils import rtext_to_safe_json
 
 
 @dataclass
@@ -32,7 +33,9 @@ class DialogInputsBase:
         return {
             "type": self.type.value,
             "key": self.key,
-            "label": self.label.to_json_object(json_format=RTextJsonFormat.V_1_21_5),
+            "label": rtext_to_safe_json(
+                self.label, json_format=RTextJsonFormat.V_1_21_5
+            ),
         }
 
     @classmethod
@@ -208,8 +211,8 @@ class DialogInputsSingleOptionCompound:
             if isinstance(self.display, RTextBase):
                 result.update(
                     {
-                        "display": self.display.to_json_object(
-                            json_format=RTextJsonFormat.V_1_21_5
+                        "display": rtext_to_safe_json(
+                            self.display, json_format=RTextJsonFormat.V_1_21_5
                         )
                     }
                 )
@@ -217,7 +220,9 @@ class DialogInputsSingleOptionCompound:
                 result.update(
                     {
                         "display": [
-                            item.to_json_object(json_format=RTextJsonFormat.V_1_21_5)
+                            rtext_to_safe_json(
+                                item, json_format=RTextJsonFormat.V_1_21_5
+                            )
                             if isinstance(item, RTextBase)
                             else item
                             for item in self.display

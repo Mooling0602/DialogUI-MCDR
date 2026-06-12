@@ -1,6 +1,14 @@
 import json
 
-from mcdreforged.api.all import PluginServerInterface, RTextMCDRTranslation
+from typing import Any, cast
+
+from mcdreforged.api.all import (
+    PluginServerInterface,
+    RColor,
+    RColorClassic,
+    RTextBase,
+    RTextMCDRTranslation,
+)
 
 
 def extract_file(server: PluginServerInterface, file_path: str, target_path: str):
@@ -126,3 +134,57 @@ def json_file_to_dict(file_path: str, encoding: str | None = None, **kwargs) -> 
         encoding = _detect_encoding(file_path)
     with open(file_path, "r", encoding=encoding) as f:
         return json.load(f, **kwargs)
+
+
+def _normalize_color(color_str: str) -> str | None:
+    """Resolve a color name to its ``#RRGGBB`` hex form.
+
+    :param color_str: A named color (e.g. ``"red"``, ``"gold"``) or hex string.
+    :return: The hex color string, or ``None`` for ``"reset"``.
+    """
+    if color_str.startswith("#"):
+        return color_str
+    color = RColor.from_mc_value(color_str)
+    if color_str == "reset":
+        return None
+    return cast(RColorClassic, color).to_rgb().name
+
+
+def sanitize_rtext_json(obj: dict[str, Any]) -> dict[str, Any]:
+    """Clean color fields in an RText JSON dict.
+
+    Named colors (``"red"``, ``"gold"``, ...) are converted to ``#RRGGBB``
+    hex format. ``"color": "reset"`` is removed entirely so the dialog
+    component falls back to its default color.
+
+    :param obj: The dict returned by :meth:`RTextBase.to_json_object`.
+    :return: The cleaned dict.
+    """
+    raw_color = obj.get("color")
+    if raw_color is not None:
+        normalized = _normalize_color(raw_color)
+        if normalized is None:
+            del obj["color"]
+        else:
+            obj["color"] = normalized
+    for v in obj.values():
+        if isinstance(v, dict):
+            sanitize_rtext_json(v)
+        elif isinstance(v, list):
+            for item in v:
+                if isinstance(item, dict):
+                    sanitize_rtext_json(item)
+    return obj
+
+
+def rtext_to_safe_json(rtext: RTextBase, **kwargs: Any) -> dict[str, Any]:
+    """Call :meth:`RTextBase.to_json_object` and strip ``"color": "reset"``.
+
+    :param rtext: The RText object to serialize. Must not be an :class:`RTextList`.
+    :param kwargs: Extra arguments passed to :meth:`~RTextBase.to_json_object`.
+    :return: The cleaned dict.
+    """
+    result = rtext.to_json_object(**kwargs)
+    if isinstance(result, list):
+        raise TypeError("rtext_to_safe_json does not support RTextList")
+    return sanitize_rtext_json(result)

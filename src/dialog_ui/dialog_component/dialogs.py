@@ -5,7 +5,7 @@ from typing import Any, Self
 
 from mcdreforged.api.all import RText
 
-from dialog_ui.dialog_component import DialogActionBase
+from dialog_ui.dialog_component import DialogAction
 from dialog_ui.dialog_component.base import DialogBase, DialogNoticeAction
 from dialog_ui.dialog_component.types import (
     DialogType,
@@ -103,13 +103,13 @@ class DialogMultiAction(DialogBase):
     def type(self) -> DialogType:
         return self._type
 
-    actions: list[DialogActionBase] = field(default_factory=list)
+    actions: list[DialogAction] = field(default_factory=list)
     """Action buttons shown in the scrollable list."""
 
     columns: int | None = None
     """Number of columns used to arrange action buttons."""
 
-    exit_action: DialogActionBase | None = None
+    exit_action: DialogAction | None = None
     """Optional footer action used for leaving the dialog."""
 
     def to_dict(self) -> dict:

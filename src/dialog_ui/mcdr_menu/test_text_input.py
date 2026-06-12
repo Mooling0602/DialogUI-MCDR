@@ -1,7 +1,11 @@
 from mcdreforged.api.all import RHoverText, RTextTranslation
 
-from dialog_ui.dialog_component import DialogInputsText, DialogMultiAction
-from dialog_ui.dialog_component.action import DialogActionRunCommandDynamic
+from dialog_ui.dialog_component import (
+    DialogAction,
+    DialogActionRunCommandDynamic,
+    DialogInputsText,
+    DialogMultiAction,
+)
 from dialog_ui.utils import dict_to_json_file
 
 dialog = DialogMultiAction(
@@ -23,7 +27,14 @@ dialog = DialogMultiAction(
         )
     ],
     pause=False,
-    actions=[DialogActionRunCommandDynamic("say $(text_input)")],
+    actions=[
+        DialogAction(
+            label=RTextTranslation("mcdr_menu.test_text_input.send_button").fallback(
+                "Send"
+            ),
+            action=DialogActionRunCommandDynamic("say $(text_input)"),
+        ),
+    ],
 )
 
 

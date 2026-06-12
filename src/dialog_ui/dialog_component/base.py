@@ -16,6 +16,7 @@ from dialog_ui.dialog_component.types import (
     DialogAfterActionOperation,
     DialogType,
 )
+from dialog_ui.utils import rtext_to_safe_json
 
 if TYPE_CHECKING:
     from dialog_ui.dialog_component.action import DialogAction
@@ -65,14 +66,16 @@ class DialogBase:
         """Convert the dataclass to a dict with correct data structure for the dialog component."""
         result: dict[str, Any] = {
             "type": self.type.value,
-            "title": self.title.to_json_object(json_format=RTextJsonFormat.V_1_21_5),
+            "title": rtext_to_safe_json(
+                self.title, json_format=RTextJsonFormat.V_1_21_5
+            ),
             "can_close_with_escape": self.can_close_with_escape,
             "pause": self.pause,
             "after_action": self.after_action.value,
         }
         if self.external_title is not None:
-            result["external_title"] = self.external_title.to_json_object(
-                json_format=RTextJsonFormat.V_1_21_5
+            result["external_title"] = rtext_to_safe_json(
+                self.external_title, json_format=RTextJsonFormat.V_1_21_5
             )
         if self.body is not None:
             if isinstance(self.body, list):
@@ -165,13 +168,15 @@ class DialogNoticeAction:
 
     def to_dict(self) -> dict:
         result: dict[str, Any] = {
-            "label": self.label.to_json_object(json_format=RTextJsonFormat.V_1_21_5),
+            "label": rtext_to_safe_json(
+                self.label, json_format=RTextJsonFormat.V_1_21_5
+            ),
         }
         if self.tooltip:
             result.update(
                 {
-                    "tooltip": self.tooltip.to_json_object(
-                        json_format=RTextJsonFormat.V_1_21_5
+                    "tooltip": rtext_to_safe_json(
+                        self.tooltip, json_format=RTextJsonFormat.V_1_21_5
                     )
                 }
             )

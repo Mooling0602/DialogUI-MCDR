@@ -2,10 +2,13 @@ from mcdreforged.api.all import (
     CommandContext,
     CommandSource,
     PluginServerInterface,
+    RText,
     SimpleCommandBuilder,
 )
+from mcdreforged.minecraft.rtext.click_event import RClickShowDialog
 
 from dialog_ui.installer import install_datapack
+from dialog_ui.mcdr_menu.test_text_input import dialog
 
 builder = SimpleCommandBuilder()
 _command_confirmation: bool = False
@@ -23,6 +26,13 @@ def open_dialog(src: CommandSource):
         return
     server = src.get_server().psi()
     server.execute(f"dialog show {src.player} mcdr_dialog:main_screen")  # ty:ignore[unresolved-attribute]
+
+
+@builder.command("!!dialog menu")
+def open_menu(src: CommandSource):
+    src.reply(
+        "Open " + RText("Menu").set_click_event(RClickShowDialog(dialog.to_dict()))
+    )
 
 
 @builder.command("!!dialog reinstall")
