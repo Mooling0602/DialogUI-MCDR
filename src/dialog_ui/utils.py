@@ -1,3 +1,5 @@
+import json
+
 from mcdreforged.api.all import PluginServerInterface, RTextMCDRTranslation
 
 
@@ -54,3 +56,71 @@ def tr_to_rtr(
     rtr = tr(server, tr_key, False, *args)
     assert isinstance(rtr, RTextMCDRTranslation)
     return rtr
+
+
+def dict_to_json_str(data: dict, **kwargs) -> str:
+    """Serialize a dict to a JSON string.
+
+    :param data: The dict to serialize.
+    :param kwargs: Extra arguments passed to :func:`json.dumps`.
+    :return: The JSON string.
+    """
+    return json.dumps(data, **kwargs)
+
+
+def json_str_to_dict(json_str: str, **kwargs) -> dict:
+    """Deserialize a JSON string to a dict.
+
+    :param json_str: The JSON string to parse.
+    :param kwargs: Extra arguments passed to :func:`json.loads`.
+    :return: The parsed dict.
+    """
+    return json.loads(json_str, **kwargs)
+
+
+def _detect_encoding(file_path: str, encodings: tuple[str, ...] = ("utf-8", "gbk")) -> str:
+    """Try to detect the encoding of a text file.
+
+    :param file_path: Path to the file.
+    :param encodings: Encodings to try, in order.
+    :return: The first working encoding.
+    :raises ValueError: If no encoding works.
+    """
+    for enc in encodings:
+        try:
+            with open(file_path, "r", encoding=enc) as f:
+                f.read()
+            return enc
+        except (UnicodeDecodeError, LookupError):
+            continue
+    raise ValueError(f"Cannot detect encoding for {file_path}, tried: {encodings}")
+
+
+def dict_to_json_file(
+    data: dict, file_path: str, encoding: str = "utf-8", **kwargs
+) -> None:
+    """Write a dict to a JSON file.
+
+    :param data: The dict to serialize.
+    :param file_path: Path to the output JSON file.
+    :param encoding: Encoding for the output file, default utf-8.
+    :param kwargs: Extra arguments passed to :func:`json.dump`.
+    """
+    with open(file_path, "w", encoding=encoding) as f:
+        json.dump(data, f, **kwargs)
+
+
+def json_file_to_dict(
+    file_path: str, encoding: str | None = None, **kwargs
+) -> dict:
+    """Read a JSON file and deserialize it to a dict.
+
+    :param file_path: Path to the JSON file.
+    :param encoding: File encoding. If None, auto-detect (utf-8 then gbk).
+    :param kwargs: Extra arguments passed to :func:`json.load`.
+    :return: The parsed dict.
+    """
+    if encoding is None:
+        encoding = _detect_encoding(file_path)
+    with open(file_path, "r", encoding=encoding) as f:
+        return json.load(f, **kwargs)
