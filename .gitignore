@@ -23,3 +23,6 @@ uv.lock
 .codegraph/
 .reasonix/
 .claude/
+
+# Test
+_*.json

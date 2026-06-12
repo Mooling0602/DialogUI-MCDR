@@ -2,6 +2,7 @@ from mcdreforged.api.all import RHoverText, RTextTranslation
 
 from dialog_ui.dialog_component import DialogInputsText, DialogMultiAction
 from dialog_ui.dialog_component.action import DialogActionRunCommandDynamic
+from dialog_ui.utils import dict_to_json_file
 
 dialog = DialogMultiAction(
     title=RTextTranslation("mcdr_menu.test_text_input.title").fallback(
@@ -28,3 +29,4 @@ dialog = DialogMultiAction(
 
 if __name__ == "__main__":
     print(dialog.to_dict())
+    dict_to_json_file(dialog.to_dict(), "_test_text_input.json")
