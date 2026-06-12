@@ -9,7 +9,7 @@ dynamic = ["version"]
 description = "Provides dialog UI for MCDR and its plugins using managed Minecraft datapacks."
 readme = "README.md"
 authors = [{ name = "Mooling0602", email = "clemooling@outlook.com" }]
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "mcdreforged>=2.15.7",
 ]
