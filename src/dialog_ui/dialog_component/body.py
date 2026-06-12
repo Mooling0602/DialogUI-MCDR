@@ -23,7 +23,7 @@ class DialogBodyBase:
         )
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> DialogBodyBase:
+    def from_dict(cls, data: dict[str, Any]) -> "DialogBodyBase":
         _body_type_dispatch: dict[str, type[DialogBodyBase]] = {
             DialogBodyType.PLAIN_MESSAGE.value: DialogBodyPlainMessage,
             DialogBodyType.ITEM.value: DialogBodyItem,

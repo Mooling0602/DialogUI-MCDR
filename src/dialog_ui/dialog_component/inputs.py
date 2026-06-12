@@ -24,7 +24,7 @@ class DialogInputsBase:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> DialogInputsBase:
+    def from_dict(cls, data: dict[str, Any]) -> "DialogInputsBase":
         _inputs_type_dispatch: dict[str, type[DialogInputsBase]] = {
             DialogInputsType.TEXT.value: DialogInputsText,
             DialogInputsType.BOOLEAN.value: DialogInputsBoolean,

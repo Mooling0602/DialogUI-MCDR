@@ -118,7 +118,7 @@ class DialogBase:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> DialogBase:
+    def from_dict(cls, data: dict[str, Any]) -> "DialogBase":
         # Lazy import to avoid circular dependency with concrete dialog classes
         from dialog_ui.dialog_component.dialogs import (
             DialogConfirmation,

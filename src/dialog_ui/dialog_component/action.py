@@ -25,7 +25,7 @@ class DialogActionBase:
         )
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> DialogActionBase:
+    def from_dict(cls, data: dict[str, Any]) -> "DialogActionBase":
         _action_type_dispatch: dict[str, type[DialogActionBase]] = {
             DialogActionType.SHOW_DIALOG.value: DialogActionShowDialog,
             DialogActionType.OPEN_URL.value: DialogActionOpenUrl,
