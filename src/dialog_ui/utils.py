@@ -108,6 +108,8 @@ def dict_to_json_file(
     :param encoding: Encoding for the output file, default utf-8.
     :param kwargs: Extra arguments passed to :func:`json.dump`.
     """
+    kwargs.setdefault("ensure_ascii", False)
+    kwargs.setdefault("indent", 2)
     with open(file_path, "w", encoding=encoding) as f:
         json.dump(data, f, **kwargs)
 
