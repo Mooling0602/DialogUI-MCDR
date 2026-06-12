@@ -1,3 +1,8 @@
+"""Dialog body element classes matching Minecraft dialog body format.
+
+`Ref: <https://minecraft.wiki/w/Dialog#Body_format>`__
+"""
+
 from abc import abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Self
@@ -37,6 +42,11 @@ class DialogBodyBase:
 
 @dataclass
 class DialogBodyPlainMessage(DialogBodyBase):
+    """A multiline label body element.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#plain_message>`__
+    """
+
     _type: DialogBodyType = field(init=False, default=DialogBodyType.PLAIN_MESSAGE)
 
     @property
@@ -44,7 +54,10 @@ class DialogBodyPlainMessage(DialogBodyBase):
         return self._type
 
     contents: RTextBase
+    """Text component displayed as the message contents."""
+
     width: int | None = None
+    """Maximum message width. Defaults to Minecraft's own value."""
 
     def to_dict(self) -> dict:
         result: dict[str, Any] = {
@@ -74,8 +87,16 @@ class DialogBodyPlainMessage(DialogBodyBase):
 
 @dataclass
 class DialogBodyItemDescription:
+    """Optional text displayed beside an item body element.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#item>`__
+    """
+
     contents: str | list[str | RTextBase] | RTextBase | None = None
+    """Text component contents for the item description."""
+
     width: int | None = None
+    """Maximum description width. Defaults to Minecraft's own value."""
 
     def to_dict(self) -> dict:
         result = {}
@@ -117,9 +138,19 @@ class DialogBodyItemDescription:
 
 @dataclass
 class DialogBodyItemObject:
+    """Item stack shown by an item body element.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#item>`__
+    """
+
     id: str
+    """Item identifier."""
+
     count: int | None = None
+    """Item count."""
+
     components: dict[str, Any] | None = None
+    """Optional item data components."""
 
     def to_dict(self) -> dict:
         result = {}
@@ -141,6 +172,11 @@ class DialogBodyItemObject:
 
 @dataclass
 class DialogBodyItem(DialogBodyBase):
+    """An item slot with optional description text.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#item>`__
+    """
+
     _type: DialogBodyType = field(init=False, default=DialogBodyType.ITEM)
 
     @property
@@ -148,13 +184,24 @@ class DialogBodyItem(DialogBodyBase):
         return self._type
 
     item: DialogBodyItemObject
+    """Item stack to render."""
+
     description: (
         str | list[str | RTextBase] | RTextBase | DialogBodyItemDescription | None
     ) = None
+    """Optional text component or description object shown beside the item."""
+
     show_decoration: bool = True
+    """Whether count and damage bar decorations are rendered. Defaults to ``true``."""
+
     show_tooltip: bool = True
+    """Whether the item tooltip appears on hover. Defaults to ``true``."""
+
     width: int | None = None
+    """Horizontal size of the element. Defaults to Minecraft's own value."""
+
     height: int | None = None
+    """Vertical size of the element. Defaults to Minecraft's own value."""
 
     def to_dict(self) -> dict:
         result: dict[str, Any] = {

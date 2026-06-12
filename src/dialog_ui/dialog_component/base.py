@@ -144,10 +144,22 @@ class DialogBase:
 
 @dataclass
 class DialogNoticeAction:
+    """Button entry used by notice, confirmation, multi-action, and exit actions.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#notice>`__
+    """
+
     label: RTextBase = field(default_factory=lambda: RText("gui.ok"))
+    """Button label text component."""
+
     tooltip: RTextBase | None = None
+    """Optional tooltip shown when the button is highlighted or hovered."""
+
     width: int | None = None
-    action: DialogAction | None = None
+    """Button width. Defaults to Minecraft's own value."""
+
+    action: "DialogAction | None" = None
+    """Optional action payload performed when the button is clicked."""
 
     def to_dict(self) -> dict:
         result: dict[str, Any] = {

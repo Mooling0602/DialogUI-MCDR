@@ -1,3 +1,8 @@
+"""Dialog action classes matching Minecraft dialog action format.
+
+`Ref: <https://minecraft.wiki/w/Dialog#Action_format>`__
+"""
+
 from abc import abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Self
@@ -14,9 +19,16 @@ from dialog_ui.dialog_component.types import (
 
 @dataclass
 class DialogActionBase:
+    """Base class for static or dynamic dialog action payloads.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#Action_format>`__
+    """
+
     @property
     @abstractmethod
-    def type(self) -> DialogActionType | DialogActionTypeDynamic: ...
+    def type(self) -> DialogActionType | DialogActionTypeDynamic:
+        """One action type from the static or dynamic action registries."""
+        ...
 
     @abstractmethod
     def to_dict(self) -> dict:
@@ -46,8 +58,14 @@ class DialogActionBase:
 
 @dataclass
 class DialogActionShowDialog(DialogActionBase):
+    """Open another dialog by resource location or inline definition.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#show_dialog>`__
+    """
+
     _type: DialogActionType = field(init=False, default=DialogActionType.SHOW_DIALOG)
     dialog: str | DialogBase
+    """Dialog resource location or inline dialog object to display."""
 
     @property
     def type(self) -> DialogActionType:
@@ -76,8 +94,14 @@ class DialogActionShowDialog(DialogActionBase):
 
 @dataclass
 class DialogActionOpenUrl(DialogActionBase):
+    """Open a URL in the user's default web browser.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#open_url>`__
+    """
+
     _type: DialogActionType = field(init=False, default=DialogActionType.OPEN_URL)
     url: str
+    """The URL to open."""
 
     @property
     def type(self) -> DialogActionType:
@@ -101,8 +125,14 @@ class DialogActionOpenUrl(DialogActionBase):
 
 @dataclass
 class DialogActionRunCommand(DialogActionBase):
+    """Run a command as if the player typed it in chat.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#run_command>`__
+    """
+
     _type: DialogActionType = field(init=False, default=DialogActionType.RUN_COMMAND)
     command: str
+    """Command to run, usually without a leading slash."""
 
     @property
     def type(self) -> DialogActionType:
@@ -126,10 +156,16 @@ class DialogActionRunCommand(DialogActionBase):
 
 @dataclass
 class DialogActionSuggestCommand(DialogActionBase):
+    """Open chat and fill it with the given text or command.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#suggest_command>`__
+    """
+
     _type: DialogActionType = field(
         init=False, default=DialogActionType.SUGGEST_COMMAND
     )
     command: str
+    """Text or command inserted into the chat input."""
 
     @property
     def type(self) -> DialogActionType:
@@ -153,8 +189,14 @@ class DialogActionSuggestCommand(DialogActionBase):
 
 @dataclass
 class DialogActionChangePage(DialogActionBase):
+    """Change to a page in contexts that support page navigation.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#change_page>`__
+    """
+
     _type: DialogActionType = field(init=False, default=DialogActionType.CHANGE_PAGE)
     page: int
+    """Target page number."""
 
     @property
     def type(self) -> DialogActionType:
@@ -178,10 +220,16 @@ class DialogActionChangePage(DialogActionBase):
 
 @dataclass
 class DialogActionCopyToClipboard(DialogActionBase):
+    """Copy text to the user's clipboard.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#copy_to_clipboard>`__
+    """
+
     _type: DialogActionType = field(
         init=False, default=DialogActionType.COPY_TO_CLIPBOARD
     )
     value: str
+    """Text to copy."""
 
     @property
     def type(self) -> DialogActionType:
@@ -205,9 +253,17 @@ class DialogActionCopyToClipboard(DialogActionBase):
 
 @dataclass
 class DialogActionCustom(DialogActionBase):
+    """Send a custom event to the server.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#custom>`__
+    """
+
     _type: DialogActionType = field(init=False, default=DialogActionType.CUSTOM)
     id: str
+    """Namespaced identifier for the custom event."""
+
     payload: str | Any
+    """Optional event payload."""
 
     @property
     def type(self) -> DialogActionType:
@@ -233,10 +289,16 @@ class DialogActionCustom(DialogActionBase):
 
 @dataclass
 class DialogActionRunCommandDynamic(DialogActionBase):
+    """Build a run-command action using submitted input values.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#dynamic/run_command>`__
+    """
+
     _type: DialogActionTypeDynamic = field(
         init=False, default=DialogActionTypeDynamic.RUN_COMMAND
     )
     template: str
+    """Macro template interpreted as a command."""
 
     @property
     def type(self) -> DialogActionTypeDynamic:
@@ -260,11 +322,19 @@ class DialogActionRunCommandDynamic(DialogActionBase):
 
 @dataclass
 class DialogActionCustomDynamic(DialogActionBase):
+    """Build a custom event from submitted input values.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#dynamic/custom>`__
+    """
+
     _type: DialogActionTypeDynamic = field(
         init=False, default=DialogActionTypeDynamic.CUSTOM
     )
     additions: dict
+    """Static fields added to the generated payload."""
+
     id: str
+    """Namespaced identifier for the generated custom event."""
 
     @property
     def type(self) -> DialogActionTypeDynamic:
@@ -292,8 +362,16 @@ class DialogActionCustomDynamic(DialogActionBase):
 
 @dataclass
 class DialogAction:
+    """Labeled button action used by dialog footer and list buttons.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#Action_format>`__
+    """
+
     label: RTextBase
+    """Button label text component."""
+
     action: DialogActionBase
+    """Action payload performed when the button is clicked."""
 
     def to_dict(self) -> dict:
         return {

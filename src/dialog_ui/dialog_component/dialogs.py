@@ -14,8 +14,14 @@ from dialog_ui.dialog_component.types import (
 
 @dataclass
 class DialogNotice(DialogBase):
+    """A dialog screen with a single action button in the footer.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#notice>`__
+    """
+
     _type: DialogType = field(init=False, default=DialogType.NOTICE)
     action: DialogNoticeAction | None = None
+    """Footer click action. Defaults to Minecraft's OK button if omitted."""
 
     @property
     def type(self) -> DialogType:
@@ -41,6 +47,11 @@ class DialogNotice(DialogBase):
 
 @dataclass
 class DialogConfirmation(DialogBase):
+    """A dialog screen with yes and no action buttons in the footer.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#confirmation>`__
+    """
+
     _type: DialogType = field(init=False, default=DialogType.CONFIRMATION)
 
     @property
@@ -50,9 +61,12 @@ class DialogConfirmation(DialogBase):
     yes: DialogNoticeAction = field(
         default_factory=lambda: DialogNoticeAction(label=RText("Yes"))
     )
+    """Click action for the positive outcome."""
+
     no: DialogNoticeAction = field(
         default_factory=lambda: DialogNoticeAction(label=RText("No"))
     )
+    """Click action for the negative outcome and default exit action."""
 
     def to_dict(self) -> dict:
         result: dict[str, Any] = super().to_dict()
@@ -77,6 +91,11 @@ class DialogConfirmation(DialogBase):
 
 @dataclass
 class DialogMultiAction(DialogBase):
+    """A dialog screen with a scrollable list of action buttons.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#multi_action>`__
+    """
+
     _type: DialogType = field(init=False, default=DialogType.MULTI_ACTION)
 
     @property
@@ -84,8 +103,13 @@ class DialogMultiAction(DialogBase):
         return self._type
 
     actions: list[DialogNoticeAction] = field(default_factory=list)
+    """Action buttons shown in the scrollable list."""
+
     columns: int | None = None
+    """Number of columns used to arrange action buttons."""
+
     exit_action: DialogNoticeAction | None = None
+    """Optional footer action used for leaving the dialog."""
 
     def to_dict(self) -> dict:
         result: dict[str, Any] = super().to_dict()
@@ -120,6 +144,11 @@ class DialogMultiAction(DialogBase):
 
 @dataclass
 class DialogServerLinks(DialogBase):
+    """A dialog screen with a scrollable list of server links.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#server_links>`__
+    """
+
     _type: DialogType = field(init=False, default=DialogType.SERVER_LINKS)
 
     @property
@@ -127,8 +156,13 @@ class DialogServerLinks(DialogBase):
         return self._type
 
     exit_action: DialogNoticeAction | None = None
+    """Optional footer action used for leaving the dialog."""
+
     columns: int | None = None
+    """Number of columns used to arrange server link buttons."""
+
     button_width: int | None = None
+    """Width of each server link button."""
 
     def to_dict(self) -> dict:
         result: dict[str, Any] = super().to_dict()
@@ -158,6 +192,11 @@ class DialogServerLinks(DialogBase):
 
 @dataclass
 class DialogList(DialogBase):
+    """A dialog screen with buttons leading to other dialogs.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#dialog_list>`__
+    """
+
     _type: DialogType = field(init=False, default=DialogType.DIALOG_LIST)
 
     @property
@@ -165,9 +204,16 @@ class DialogList(DialogBase):
         return self._type
 
     dialogs: str | list[DialogBase | str] | DialogBase = field(kw_only=True)
+    """Dialog IDs, tag IDs, inline dialog definitions, or a list of them."""
+
     exit_action: DialogNoticeAction | None = None
+    """Optional footer action used for leaving the dialog."""
+
     columns: int | None = None
+    """Number of columns used to arrange dialog buttons."""
+
     button_width: int | None = None
+    """Width of each dialog button."""
 
     def to_dict(self) -> dict:
         result: dict[str, Any] = super().to_dict()

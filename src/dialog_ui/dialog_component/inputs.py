@@ -1,3 +1,8 @@
+"""Dialog input control classes matching Minecraft dialog input format.
+
+`Ref: <https://minecraft.wiki/w/Dialog#Input_control_format>`__
+"""
+
 from abc import abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Self
@@ -9,12 +14,19 @@ from dialog_ui.dialog_component.types import DialogInputsType
 
 @dataclass
 class DialogInputsBase:
+    """Base class for input controls that submit values by key."""
+
     @property
     @abstractmethod
-    def type(self) -> DialogInputsType: ...
+    def type(self) -> DialogInputsType:
+        """One input control type from the ``minecraft:input_control_type`` registry."""
+        ...
 
     key: str
+    """Identifier used to reference the submitted value."""
+
     label: RTextBase
+    """Text component displayed next to the input control."""
 
     def to_dict(self) -> dict:
         return {
@@ -40,8 +52,16 @@ class DialogInputsBase:
 
 @dataclass
 class DialogInputsTextMultiline:
+    """Configuration that turns a text input into a multiline input.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#text>`__
+    """
+
     max_lines: int | None = None
+    """Maximum number of input lines."""
+
     height: int | None = None
+    """Height of the multiline input."""
 
     def to_dict(self) -> dict:
         result = {}
@@ -61,6 +81,11 @@ class DialogInputsTextMultiline:
 
 @dataclass
 class DialogInputsText(DialogInputsBase):
+    """A single-line or multiline text input control.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#text>`__
+    """
+
     _type: DialogInputsType = field(init=False, default=DialogInputsType.TEXT)
 
     @property
@@ -68,10 +93,19 @@ class DialogInputsText(DialogInputsBase):
         return self._type
 
     width: int | None = None
+    """Width of the input. Defaults to Minecraft's own value."""
+
     label_visible: bool = True
+    """Whether the label is visible. Defaults to ``true``."""
+
     initial: str | None = None
+    """Initial text value."""
+
     max_length: int | None = None
+    """Maximum input length."""
+
     multiline: DialogInputsTextMultiline | None = None
+    """Optional multiline input configuration."""
 
     def to_dict(self) -> dict:
         result = super().to_dict()
@@ -107,6 +141,11 @@ class DialogInputsText(DialogInputsBase):
 
 @dataclass
 class DialogInputsBoolean(DialogInputsBase):
+    """A checkbox input control.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#boolean>`__
+    """
+
     _type: DialogInputsType = field(init=False, default=DialogInputsType.BOOLEAN)
 
     @property
@@ -114,8 +153,13 @@ class DialogInputsBoolean(DialogInputsBase):
         return self._type
 
     initial: bool = False
+    """Initial checked state. Defaults to ``false``."""
+
     on_true: str | None = None
+    """Template substitution value sent when checked."""
+
     on_false: str | None = None
+    """Template substitution value sent when unchecked."""
 
     def to_dict(self) -> dict:
         result = super().to_dict()
@@ -143,9 +187,19 @@ class DialogInputsBoolean(DialogInputsBase):
 
 @dataclass
 class DialogInputsSingleOptionCompound:
+    """One selectable option in a single-option input control.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#single_option>`__
+    """
+
     id: str
+    """Value sent when this option is selected."""
+
     display: str | list[str | RTextBase] | RTextBase | None = None
+    """Text component displayed for this option."""
+
     initial: bool | None = None
+    """Whether this option is selected initially."""
 
     def to_dict(self) -> dict:
         result = {}
@@ -193,6 +247,11 @@ class DialogInputsSingleOptionCompound:
 
 @dataclass
 class DialogInputsSingleOption(DialogInputsBase):
+    """A preset option selection input control.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#single_option>`__
+    """
+
     _type: DialogInputsType = field(init=False, default=DialogInputsType.SINGLE_OPTION)
 
     @property
@@ -200,8 +259,13 @@ class DialogInputsSingleOption(DialogInputsBase):
         return self._type
 
     options: list[DialogInputsSingleOptionCompound]
+    """Non-empty list of selectable options."""
+
     label_visible: bool = True
+    """Whether the label is visible. Defaults to ``true``."""
+
     width: int | None = None
+    """Width of the input. Defaults to Minecraft's own value."""
 
     def to_dict(self) -> dict:
         result = super().to_dict()
@@ -231,6 +295,11 @@ class DialogInputsSingleOption(DialogInputsBase):
 
 @dataclass
 class DialogInputsNumberRange(DialogInputsBase):
+    """A number slider input control.
+
+    `Ref: <https://minecraft.wiki/w/Dialog#number_range>`__
+    """
+
     _type: DialogInputsType = field(init=False, default=DialogInputsType.NUMBER_RANGE)
 
     @property
@@ -238,11 +307,22 @@ class DialogInputsNumberRange(DialogInputsBase):
         return self._type
 
     start: float
+    """Minimum slider value."""
+
     end: float
+    """Maximum slider value."""
+
     label_format: str | None = None
+    """Translation key used to build the displayed label."""
+
     width: int | None = None
+    """Width of the input. Defaults to Minecraft's own value."""
+
     step: float | None = None
+    """Step size for allowed slider values."""
+
     initial: float | None = None
+    """Initial slider value. Defaults to the middle of the range."""
 
     def to_dict(self) -> dict:
         result = super().to_dict()
