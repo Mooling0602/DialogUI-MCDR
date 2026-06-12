@@ -6,6 +6,9 @@ Code Review from Gemini 3.1 Pro Preview.
   及其仓库代码的深入分析，这次重构虽然初衷是好的（为了模块化解耦），但在实现上存在几个明显的问题、错误和隐患：
 
   1. 严重的破坏性变更（Breaking Change），无向后兼容
+
+  > 目前项目还在开发阶段，没有任何下游项目，不需要考虑兼容性，此条可忽略。
+
   这是该 Commit 最大的问题。DialogUI-MCDR 作为一个为其他 MCDR 插件提供 UI API 的前置库，其模块路径的稳定性至关重要。
    * 问题：原本所有的 UI 组件（如 DialogNotice、DialogBase 等）都在 src/dialog_ui/dialog.py 里，其他开发者通常使用 from
      dialog_ui.dialog import DialogNotice 来调用。在这个 Commit 中，作者直接删除了 dialog.py，并将文件结构改成了
@@ -39,6 +42,9 @@ Code Review from Gemini 3.1 Pro Preview.
       (注：反观 __init__.py 中的 DialogList.from_dict，作者就正确处理了这个字典到对象的转换，但在这里遗漏了)。
 
   3. API 门面缺失（__init__.py 未正确利用）
+
+  > 可以暂缓处理
+
    * 问题：重构后，src/dialog_ui/__init__.py 依然只包含了指令注册（!!dialog）和资源释放相关逻辑。
    * 结构缺陷：作为一个库，重构的规范做法应该是在根 __init__.py 收集并暴露常用的外部 API：
 

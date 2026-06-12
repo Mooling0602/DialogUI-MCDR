@@ -22,7 +22,7 @@ class DialogInputsBase:
             "key": self.key,
             "label": self.label.to_json_object(),
         }
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> DialogInputsBase:
         _inputs_type_dispatch: dict[str, type[DialogInputsBase]] = {
@@ -75,9 +75,11 @@ class DialogInputsText(DialogInputsBase):
 
     def to_dict(self) -> dict:
         result = super().to_dict()
-        result.update({
-            "label_visible": self.label_visible,
-        })
+        result.update(
+            {
+                "label_visible": self.label_visible,
+            }
+        )
         if self.width is not None:
             result["width"] = self.width
         if self.initial is not None:
@@ -97,7 +99,9 @@ class DialogInputsText(DialogInputsBase):
             label_visible=data.get("label_visible", True),
             initial=data.get("initial", None),
             max_length=data.get("max_length", None),
-            multiline=DialogInputsTextMultiline.from_dict(data["multiline"]) if "multiline" in data else None,
+            multiline=DialogInputsTextMultiline.from_dict(data["multiline"])
+            if "multiline" in data
+            else None,
         )
 
 
@@ -115,9 +119,11 @@ class DialogInputsBoolean(DialogInputsBase):
 
     def to_dict(self) -> dict:
         result = super().to_dict()
-        result.update({
-            "initial": self.initial,
-        })
+        result.update(
+            {
+                "initial": self.initial,
+            }
+        )
         if self.on_true is not None:
             result["on_true"] = self.on_true
         if self.on_false is not None:
@@ -148,13 +154,22 @@ class DialogInputsSingleOptionCompound:
             if isinstance(self.display, RTextBase):
                 result.update({"display": self.display.to_json_object()})
             elif isinstance(self.display, list):
-                result.update({"display": [item.to_json_object() if isinstance(item, RTextBase) else item for item in self.display]})
+                result.update(
+                    {
+                        "display": [
+                            item.to_json_object()
+                            if isinstance(item, RTextBase)
+                            else item
+                            for item in self.display
+                        ]
+                    }
+                )
             else:
                 result.update({"display": self.display})
         if self.initial is not None:
             result.update({"initial": self.initial})
         return result
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
         display: str | list[str | RTextBase] | RTextBase | None = None
@@ -190,20 +205,25 @@ class DialogInputsSingleOption(DialogInputsBase):
 
     def to_dict(self) -> dict:
         result = super().to_dict()
-        result.update({
-            "options": [option.to_dict() for option in self.options],
-            "label_visible": self.label_visible,
-        })
+        result.update(
+            {
+                "options": [option.to_dict() for option in self.options],
+                "label_visible": self.label_visible,
+            }
+        )
         if self.width is not None:
             result["width"] = self.width
         return result
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
         return cls(
             key=data["key"],
             label=RTextBase.from_json_object(data["label"]),
-            options=[DialogInputsSingleOptionCompound.from_dict(option) for option in data["options"]],
+            options=[
+                DialogInputsSingleOptionCompound.from_dict(option)
+                for option in data["options"]
+            ],
             label_visible=data.get("label_visible", True),
             width=data.get("width", None),
         )
@@ -216,7 +236,7 @@ class DialogInputsNumberRange(DialogInputsBase):
     @property
     def type(self) -> DialogInputsType:
         return self._type
-    
+
     start: float
     end: float
     label_format: str | None = None
@@ -226,10 +246,12 @@ class DialogInputsNumberRange(DialogInputsBase):
 
     def to_dict(self) -> dict:
         result = super().to_dict()
-        result.update({
-            "start": self.start,
-            "end": self.end,
-        })
+        result.update(
+            {
+                "start": self.start,
+                "end": self.end,
+            }
+        )
         if self.label_format is not None:
             result["label_format"] = self.label_format
         if self.width is not None:

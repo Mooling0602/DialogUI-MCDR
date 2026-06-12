@@ -46,7 +46,7 @@ class DialogActionType(Enum):
         """This method add a string "minecraft:" as namespace prefix to each types."""
         _, _, _ = start, count, last_values
         return f"minecraft:{name.lower()}"
-    
+
     SHOW_DIALOG = auto()
     OPEN_URL = auto()
     RUN_COMMAND = auto()
@@ -61,6 +61,7 @@ class DialogActionTypeDynamic(Enum):
     def _generate_next_value_(name: str, start: int, count: int, last_values: list):
         _, _, _ = start, count, last_values
         return f"minecraft:dynamic/{name.lower()}"
+
     RUN_COMMAND = auto()
     CUSTOM = auto()
 
@@ -70,6 +71,7 @@ class DialogBodyType(Enum):
     def _generate_next_value_(name: str, start: int, count: int, last_values: list):
         _, _, _ = start, count, last_values
         return f"minecraft:{name.lower()}"
+
     PLAIN_MESSAGE = auto()
     ITEM = auto()
 
@@ -79,6 +81,7 @@ class DialogInputsType(Enum):
     def _generate_next_value_(name: str, start: int, count: int, last_values: list):
         _, _, _ = start, count, last_values
         return f"minecraft:{name.lower()}"
+
     TEXT = auto()
     BOOLEAN = auto()
     SINGLE_OPTION = auto()

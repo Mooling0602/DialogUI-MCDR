@@ -18,3 +18,8 @@ uv.lock
 
 # MCDReforged
 *.mcdr
+
+# Agentic
+.codegraph/
+.reasonix/
+.claude/

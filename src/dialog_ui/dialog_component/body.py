@@ -14,13 +14,14 @@ class DialogBodyBase:
     @property
     @abstractmethod
     def type(self) -> DialogBodyType:
-        """One dialog body types from the `minecraft:body_type` registry.
-        """
+        """One dialog body types from the `minecraft:body_type` registry."""
         ...
 
     def to_dict(self) -> dict:
-        raise NotImplementedError("DialogBodyBase does not support serialization, please use the specific dialog body class instead.")
-    
+        raise NotImplementedError(
+            "DialogBodyBase does not support serialization, please use the specific dialog body class instead."
+        )
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> DialogBodyBase:
         _body_type_dispatch: dict[str, type[DialogBodyBase]] = {
@@ -41,7 +42,7 @@ class DialogBodyPlainMessage(DialogBodyBase):
     @property
     def type(self) -> DialogBodyType:
         return self._type
-    
+
     contents: RTextBase
     width: int | None = None
 
@@ -49,17 +50,21 @@ class DialogBodyPlainMessage(DialogBodyBase):
         result: dict[str, Any] = {
             "type": self.type.value,
         }
-        result.update({
-            "contents": self.contents.to_json_object(),
-        })
+        result.update(
+            {
+                "contents": self.contents.to_json_object(),
+            }
+        )
         if self.width is not None:
             result.update({"width": self.width})
         return result
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
         _type = data.get("type")
-        if not _type or not check_if_type_matched(_type, DialogBodyType.PLAIN_MESSAGE.value):
+        if not _type or not check_if_type_matched(
+            _type, DialogBodyType.PLAIN_MESSAGE.value
+        ):
             raise ValueError("Invalid type for DialogBodyPlainMessage")
         return cls(
             contents=RTextBase.from_json_object(data["contents"]),
@@ -78,16 +83,22 @@ class DialogBodyItemDescription:
             if isinstance(self.contents, RTextBase):
                 result.update({"contents": self.contents.to_json_object()})
             elif isinstance(self.contents, list):
-                result.update({"contents": [
-                    item.to_json_object() if isinstance(item, RTextBase) else item
-                    for item in self.contents
-                ]})
+                result.update(
+                    {
+                        "contents": [
+                            item.to_json_object()
+                            if isinstance(item, RTextBase)
+                            else item
+                            for item in self.contents
+                        ]
+                    }
+                )
             else:
                 result.update({"contents": self.contents})
         if self.width is not None:
             result.update({"width": self.width})
         return result
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
         contents = data.get("contents", None)
@@ -118,7 +129,7 @@ class DialogBodyItemObject:
         if self.components:
             result.update({"components": self.components})
         return result
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
         return cls(
@@ -135,9 +146,11 @@ class DialogBodyItem(DialogBodyBase):
     @property
     def type(self) -> DialogBodyType:
         return self._type
-    
+
     item: DialogBodyItemObject
-    description: str | list[str | RTextBase] | RTextBase | DialogBodyItemDescription | None = None
+    description: (
+        str | list[str | RTextBase] | RTextBase | DialogBodyItemDescription | None
+    ) = None
     show_decoration: bool = True
     show_tooltip: bool = True
     width: int | None = None
@@ -147,7 +160,7 @@ class DialogBodyItem(DialogBodyBase):
         result: dict[str, Any] = {
             "type": self.type.value,
         }
-        
+
         # 处理 description 的序列化
         if self.description is None:
             description_serialized = None
@@ -162,12 +175,14 @@ class DialogBodyItem(DialogBodyBase):
             ]
         else:
             description_serialized = self.description
-        
-        result.update({
-            "item": self.item.to_dict(),
-            "show_decoration": self.show_decoration,
-            "show_tooltip": self.show_tooltip,
-        })
+
+        result.update(
+            {
+                "item": self.item.to_dict(),
+                "show_decoration": self.show_decoration,
+                "show_tooltip": self.show_tooltip,
+            }
+        )
         if self.description is not None:
             result["description"] = description_serialized
         if self.width is not None:
@@ -175,14 +190,16 @@ class DialogBodyItem(DialogBodyBase):
         if self.height is not None:
             result.update({"height": self.height})
         return result
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
         _type = data.get("type")
         if not _type or not check_if_type_matched(_type, DialogBodyType.ITEM.value):
             raise ValueError("Invalid type for DialogBodyItem")
-        
-        description: str | list[str | RTextBase] | RTextBase | DialogBodyItemDescription | None = None
+
+        description: (
+            str | list[str | RTextBase] | RTextBase | DialogBodyItemDescription | None
+        ) = None
         if "description" in data and data["description"] is not None:
             raw_desc = data["description"]
             if isinstance(raw_desc, dict) and "contents" in raw_desc:
@@ -196,7 +213,7 @@ class DialogBodyItem(DialogBodyBase):
                 ]
             else:
                 description = raw_desc
-        
+
         return cls(
             item=DialogBodyItemObject.from_dict(data["item"]),
             description=description,
